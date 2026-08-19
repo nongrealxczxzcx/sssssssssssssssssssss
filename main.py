@@ -135,7 +135,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .phase.active{ display:block; animation:phaseIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
   @keyframes phaseIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
 
-  /* Loader สไตล์โซนาร์พรีเมียม (Phase 1) */
   .loader{
     position:relative; width:92px; height:92px; margin:0 auto 18px;
     display:flex; align-items:center; justify-content:center;
@@ -193,7 +192,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .status-line .dots span:nth-child(3){animation-delay:0.3s;}
   @keyframes bounce{ 0%,80%,100%{transform:translateY(0); opacity:0.5;} 40%{transform:translateY(-4px); opacity:1;} }
 
-  /* ผลลัพธ์ (Phase 2) */
   .result-title {
     font-family: 'Kanit', sans-serif;
     font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;
