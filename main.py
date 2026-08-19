@@ -370,8 +370,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <p class="result-message">{{ result_message | default('ระบบได้เพิ่มยศให้คุณเรียบร้อยแล้ว') }}</p>
 
         <a href="{{ button_url | default('https://discord.com/app') }}"
-           class="result-btn {{ 'btn-success' if (result_state | default('success')) == 'success' else 'btn-retry' }}"
-           {% if (result_state | default('success')) == 'success' %}onclick="openDiscord(event)"{% endif %}>
+           id="discord-btn"
+           class="result-btn {{ 'btn-success' if (result_state | default('success')) == 'success' else 'btn-retry' }}">
           {{ button_text | default('กลับไปที่ Discord') }}
         </a>
       </div>
@@ -380,28 +380,44 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <script>
-    history.pushState(null, '', window.location.href);
-    window.addEventListener('popstate', function (event) {
-      const RESULT_STATE = "{{ result_state | default('success') }}";
-      if (RESULT_STATE === 'success') {
-        openDiscord(null);
-      } else {
-        history.back();
-      }
-    });
-
+    // Opens the Discord app when the user taps the button.
+    // Runs only from a real tap (a genuine user gesture), which is
+    // what lets mobile browsers allow the custom-scheme redirect at all.
+    // Falls back to the web app if the native app doesn't open within
+    // a short window (checked via page visibility, not a fixed guess).
     function openDiscord(event) {
-      if (event) event.preventDefault();
+      event.preventDefault();
+
+      const discordWebUrl = "{{ button_url | default('https://discord.com/app') }}";
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const discordAppUrl = 'discord://';
-      const discordWebUrl = 'https://discord.com/app';
-      if (isMobile) {
-        window.location.href = discordAppUrl;
-        setTimeout(() => { window.location.href = discordWebUrl; }, 1500);
-      } else {
+
+      if (!isMobile) {
         window.location.href = discordWebUrl;
+        return;
       }
+
+      let fellBack = false;
+      const fallbackTimer = setTimeout(function () {
+        if (!fellBack) {
+          fellBack = true;
+          window.location.href = discordWebUrl;
+        }
+      }, 1500);
+
+      // If the app opened, the page goes hidden (backgrounded) before
+      // the fallback timer fires — cancel the web fallback in that case.
+      document.addEventListener('visibilitychange', function onVis() {
+        if (document.hidden) {
+          fellBack = true;
+          clearTimeout(fallbackTimer);
+          document.removeEventListener('visibilitychange', onVis);
+        }
+      });
+
+      window.location.href = 'discord://';
     }
+
+    document.getElementById('discord-btn').addEventListener('click', openDiscord);
 
     function spawnConfetti() {
       const colors = ['#57F287', '#8b5cf6', '#22d3ee', '#ffffff'];
