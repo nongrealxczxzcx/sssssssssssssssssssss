@@ -816,14 +816,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 app = Flask(__name__)
 
 def _role_color_hex(color_int):
-
     if not color_int:
         return "#99AAB5"
     return f"#{color_int:06x}"
  
- 
 def get_role_info(guild_id, role_id):
-    """ดึงชื่อและสีของยศจริงจาก Discord API"""
     try:
         resp = requests.get(
             f"https://discord.com/api/v10/guilds/{guild_id}/roles",
@@ -838,7 +835,11 @@ def get_role_info(guild_id, role_id):
                 }
     except Exception as e:
         print("ดึงข้อมูลยศไม่สำเร็จ:", e)
-    return None
+    return {"name": "Verified", "color": "#57F287"}
+
+def get_role_name(guild_id, role_id):
+    info = get_role_info(guild_id, role_id)
+    return info["name"]
 
 @app.route("/")
 def home():
