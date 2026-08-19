@@ -786,11 +786,17 @@ class VerifyView(discord.ui.View):
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
+
+    activity = discord.Streaming(name="อยากดูหี", url="https://www.twitch.tv/Jxycop_x")
+    await bot.change_presence(status=discord.Status.idle, activity=activity)
+
     try:
         synced = await bot.tree.sync()
         print(f"Synced {len(synced)} command(s).")
     except Exception as e:
         print(e)
+
+
 
 @bot.tree.command(name="setup", description="ส่งหน้าต่างยืนยันตัวตนสำหรับสมาชิก")
 @app_commands.checks.has_permissions(administrator=True)
