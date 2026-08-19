@@ -69,7 +69,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     padding:calc(20px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
   }
 
-  /* ---------- background atmosphere ---------- */
   .noise{
     position:fixed;inset:0;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
@@ -167,7 +166,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .card{
     position:relative;
     width:100%;
-    padding:clamp(34px, 8vw, 46px) clamp(24px, 7vw, 36px) clamp(28px, 6vw, 36px);
+    padding:clamp(30px, 7vw, 40px) clamp(20px, 6vw, 30px) clamp(24px, 5vw, 30px);
     background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
     border:1px solid var(--card-border);
     border-radius:20px;
@@ -203,7 +202,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     letter-spacing:1.6px;
     text-transform:uppercase;
     color:var(--text-lo);
-    margin-bottom:clamp(18px, 5vw, 22px);
+    margin-bottom:clamp(16px, 4vw, 20px);
     opacity:0.85;
   }
   .eyebrow::before, .eyebrow::after{
@@ -221,7 +220,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     position:relative;
     width:clamp(84px, 22vw, 100px);
     height:clamp(84px, 22vw, 100px);
-    margin:0 auto clamp(24px, 6vw, 30px);
+    margin:0 auto clamp(20px, 5vw, 26px);
     display:flex;
     align-items:center;
     justify-content:center;
@@ -303,31 +302,31 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .title{
     font-family:'Kanit',sans-serif;
     font-weight:600;
-    font-size:clamp(19px, 4.8vw, 21px);
+    font-size:clamp(18px, 4.5vw, 20px);
     letter-spacing:0.1px;
     background:linear-gradient(90deg, #c4b5fd, #67e8f9 55%, #f5a8d0);
     -webkit-background-clip:text; background-clip:text; color:transparent;
     background-size:200% 100%;
     animation:shine 4s linear infinite;
-    margin-bottom:10px;
+    margin-bottom:8px;
   }
   @keyframes shine{ 0%{background-position:0% 50%;} 100%{background-position:200% 50%;} }
   .subtitle{
-    font-size:clamp(12.5px, 3.4vw, 13.5px);
-    line-height:1.7;
+    font-size:clamp(12px, 3.2vw, 13px);
+    line-height:1.6;
     color:var(--text-lo);
     font-weight:300;
-    margin-bottom:clamp(22px, 5.5vw, 28px);
+    margin-bottom:clamp(18px, 4.5vw, 24px);
     padding:0 4px;
   }
 
   .status-line{
     display:flex; align-items:center; justify-content:center; gap:10px;
-    width:100%; padding:13px 16px; border-radius:12px;
+    width:100%; padding:12px 16px; border-radius:12px;
     border:1px solid rgba(255,255,255,0.1);
     background:linear-gradient(135deg, rgba(139,92,246,0.25), rgba(34,211,238,0.18));
     color:var(--text-hi);
-    font-size:clamp(13px, 3.4vw, 14px);
+    font-size:clamp(12.5px, 3.2vw, 13.5px);
     font-weight:500; letter-spacing:0.2px;
     overflow:hidden; position:relative;
   }
@@ -349,7 +348,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
   .step-dots{
     display:flex; justify-content:center; gap:6px;
-    margin-top:20px;
+    margin-top:16px;
   }
   .step-dots span{
     width:5px; height:5px; border-radius:50%;
@@ -361,13 +360,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }
 
   .hint{
-    margin-top:16px;
-    font-size:clamp(10.5px, 2.9vw, 11.5px);
+    margin-top:14px;
+    font-size:clamp(10px, 2.7vw, 11px);
     color:rgba(150,149,172,0.7);
     font-weight:300;
   }
 
-  @keyframes successPop{ 0%{transform:scale(0.7); opacity:0;} 100%{transform:scale(1); opacity:1;} }
   @keyframes confettiFall{ 0%{transform:translateY(-20px) rotate(0deg); opacity:1;} 100%{transform:translateY(220px) rotate(360deg); opacity:0;} }
 
   .confetti{ position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:0; }
@@ -380,13 +378,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     border-radius: 12px;
     overflow: hidden;
     text-align: left;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   }
   .discord-banner {
     width: 100%;
-    height: 70px;
+    height: 65px;
     background: #35363c;
     background-size: cover;
     background-position: center;
@@ -398,13 +396,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .discord-avatar-row {
     display: flex;
     align-items: flex-end;
-    margin-top: -28px;
-    margin-bottom: 8px;
+    margin-top: -26px;
+    margin-bottom: 6px;
   }
   .discord-avatar-wrap {
     position: relative;
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     background: var(--discord-modal);
     padding: 3px;
@@ -419,8 +417,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     position: absolute;
     bottom: 2px;
     right: 2px;
-    width: 12px;
-    height: 12px;
+    width: 11px;
+    height: 11px;
     background: var(--green);
     border: 2px solid var(--discord-modal);
     border-radius: 50%;
@@ -432,15 +430,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }
   .display-name {
     font-family: 'Kanit', sans-serif;
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 600;
     color: #f2f3f5;
     line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .username-sub {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: #949ba4;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .divider {
     height: 1px;
@@ -448,7 +452,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     margin: 8px 0;
   }
   .section-title {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 700;
     color: #949ba4;
     text-transform: uppercase;
@@ -458,7 +462,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .roles-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5px;
   }
   .role-tag {
     display: inline-flex;
@@ -467,7 +471,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     background: var(--discord-input);
     padding: 3px 8px;
     border-radius: 6px;
-    font-size: 0.75rem;
+    font-size: 0.74rem;
     color: #dbdee1;
     border: 1px solid rgba(255,255,255,0.04);
   }
@@ -488,7 +492,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     background: var(--discord-blurple);
     color: #fff;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     padding: 12px;
     border-radius: 8px;
     text-decoration: none;
@@ -516,7 +520,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="card-glow"></div>
     <div class="card">
 
-      <!-- Phase 1: หน้าจอโหลดอัตโนมัติ (เริ่มแรก) -->
+      <!-- Phase 1: หน้าจอโหลดอัตโนมัติ -->
       <div class="phase active" id="phase-checking">
         <div class="eyebrow">ระบบยืนยันตัวตน</div>
 
@@ -556,7 +560,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <div class="confetti" id="confetti"></div>
         {% endif %}
 
-        <h1 class="result-title" style="font-family:'Kanit',sans-serif; font-size:1.4rem; font-weight:600; margin-bottom:14px; color:var(--green);">
+        <h1 class="result-title" style="font-family:'Kanit',sans-serif; font-size:1.3rem; font-weight:600; margin-bottom:12px; color:var(--green);">
           {{ result_title | default('เพิ่มยศสำเร็จ!') }}
         </h1>
 
@@ -571,7 +575,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               </div>
             </div>
             <div class="discord-user-info-box">
+              <!-- บรรทัดบน: แสดงชื่อหลัก (Global Name หรือ Username ถ้าไม่มี) -->
               <div class="display-name">{{ user.global_name if user.global_name else user.username }}</div>
+              <!-- บรรทัดล่าง: แสดง @username จริงแบบ Discord -->
               <div class="username-sub">@{{ user.username }}</div>
               
               <div class="divider"></div>
@@ -580,21 +586,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <div class="roles-container">
                 {% if role_name %}
                 <div class="role-tag">
-                  <span class="role-dot"></span>
+                  <span class="role-dot" style="background: {{ role_color | default('#57F287') }};"></span>
                   <span>{{ role_name }}</span>
                 </div>
                 {% endif %}
-                <div class="role-tag">
-                  <span class="role-dot" style="background: var(--green);"></span>
-                  <span>User</span>
-                </div>
               </div>
             </div>
           </div>
         </div>
         {% endif %}
 
-        <p class="result-message" style="margin-bottom:16px; color:var(--text-lo); font-size:0.9rem;">{{ result_message | default('คุณได้รับยศเข้าสู่บัญชีเรียบร้อยแล้ว ยินดีต้อนรับ!') }}</p>
+        <p class="result-message" style="margin-bottom:14px; color:var(--text-lo); font-size:0.85rem;">{{ result_message | default('คุณได้รับยศเข้าสู่บัญชีเรียบร้อยแล้ว ยินดีต้อนรับ!') }}</p>
 
         <a href="{{ button_url | default('https://discord.com/app') }}" class="discord-btn-primary" {% if (result_state | default('success')) == 'success' %}onclick="openDiscord(event)"{% endif %}>
           {{ button_text | default('กลับไปที่ Discord') }}
