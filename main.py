@@ -377,29 +377,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <script>
-    // ดักจับการกดปุ่ม Back หรือปัดย้อนกลับในมือถือ
+    // ดักจับการกดปุ่ม Back หรือปัดย้อนกลับในมือถือ ให้เปิดแอป Discord โดยตรงทันที
     history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', function (event) {
-      openDiscord(null);
+      window.location.href = 'discord://';
     });
 
     function openDiscord(event) {
       if (event) event.preventDefault();
-      
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      
-      if (isMobile) {
-        // พยายามเปิดแอป Discord ผ่าน Deep Link
-        window.location.href = 'discord://';
-        
-        // เผื่อกรณีแอปไม่ได้ติดตั้ง จะสำรองเปิดเว็บ Discord หลังผ่านไป 1.5 วินาที
-        setTimeout(() => {
-          window.location.href = 'https://discord.com/app';
-        }, 1500);
-      } else {
-        // ถ้าเปิดจากคอมพิวเตอร์ ไปที่เว็บ Discord ปกติ
-        window.location.href = 'https://discord.com/app';
-      }
+      // บังคับเปิดแอป Discord ผ่าน Deep Link โดยไม่สลับไปเว็บเบราว์เซอร์
+      window.location.href = 'discord://';
     }
 
     function spawnConfetti() {
