@@ -6,10 +6,9 @@ from discord.ext import commands
 from flask import Flask, redirect, request, render_template_string
 import requests
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "MTI5MjU2NzY1NDQwNTc3MTMzNA.GTXIRJ.TaJd30WIxeI9hylEuqlSXLdNv6g3Xa6wdbC0zw")
-CLIENT_ID = os.environ.get("CLIENT_ID", "1292567654405771334")
-CLIENT_SECRET = os.environ.get("CLIENT_SECRET", "iQumd9yZOEtJmmgkn9RwTYP2AWZ8kGPP")
-
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+CLIENT_ID = os.environ.get("CLIENT_ID")
+CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 REDIRECT_URI = "http://localhost:5000/callback"
 
 GUILD_ID = 1401504117511164076
