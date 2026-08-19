@@ -16,8 +16,8 @@ CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 REDIRECT_URI = "https://sdfsafasfasfsafasf.onrender.com/callback"
 
-GUILD_ID = 1401504117511164076
-ROLE_ID = 1401506804671971398
+GUILD_ID = 1207514483527000084
+ROLE_ID = 1211224793060478976
 
 if not BOT_TOKEN or not CLIENT_SECRET:
     raise RuntimeError(
@@ -25,12 +25,12 @@ if not BOT_TOKEN or not CLIENT_SECRET:
         "(ห้าม hardcode ไว้ในไฟล์ เพราะเป็นข้อมูลลับที่รั่วไหลได้ง่ายมาก)"
     )
 
-HTML_TEMPLATE = """<!DOCTYPE html>
+HTML_TEMPLATE = """<!DOCTYPE html
 <html lang="th">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>{{ title | default('กำลังตรวจสอบ') }}</title>
+<title>กำลังตรวจสอบ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -327,6 +327,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     font-weight:500; letter-spacing:0.2px;
     overflow:hidden; position:relative;
   }
+  #status-text{
+    display:inline-block;
+    animation:statusFade 0.4s ease both;
+  }
+  @keyframes statusFade{ from{opacity:0; transform:translateY(3px);} to{opacity:1; transform:translateY(0);} }
   .status-line .dots span{
     display:inline-block; width:5px; height:5px; margin-left:3px;
     border-radius:50%; background:var(--cyan);
@@ -343,17 +348,32 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }
   @keyframes sweep{ 0%{left:-60%;} 60%{left:130%;} 100%{left:130%;} }
 
+  .progress-track{
+    width:100%; height:3px; margin-top:14px;
+    border-radius:99px;
+    background:rgba(255,255,255,0.08);
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; width:0%;
+    border-radius:99px;
+    background:linear-gradient(90deg, var(--violet), var(--cyan));
+    transition:width 0.5s cubic-bezier(.2,.8,.2,1);
+  }
+
   .step-dots{
     display:flex; justify-content:center; gap:6px;
-    margin-top:20px;
+    margin-top:16px;
   }
   .step-dots span{
     width:5px; height:5px; border-radius:50%;
     background:rgba(255,255,255,0.15);
+    transition:background 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
   }
   .step-dots span.on{
     background:var(--cyan);
     box-shadow:0 0 6px 1px var(--cyan);
+    transform:scale(1.15);
   }
 
   .hint{
@@ -486,7 +506,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     animation:badgeIn 0.5s ease-out 0.15s both, shimmer 2.5s linear infinite;
     max-width:100%;
   }
-  .role-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; background:{{ role_color | default('#57F287') }}; box-shadow:0 0 8px {{ role_color | default('#57F287') }}; }
+  .role-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; background:#57F287; box-shadow:0 0 8px #57F287; }
   .role-name{ font-weight:600; font-size:0.9rem; color:var(--text-hi); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   .result-btn{
@@ -544,67 +564,65 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <div class="core"></div>
         </div>
 
-        <div class="title">{{ title | default('กำลังตรวจสอบ') }}</div>
+        <div class="title">กำลังตรวจสอบ</div>
         <div class="subtitle">
-          {{ subtitle | default('ระบบกำลังตรวจสอบสิทธิ์ของคุณ<br>โปรดรอสักครู่ ระบบใกล้จะเสร็จสมบูรณ์แล้ว') | safe }}
+          ระบบกำลังตรวจสอบสิทธิ์ของคุณ<br>โปรดรอสักครู่ ระบบใกล้จะเสร็จสมบูรณ์แล้ว
         </div>
 
         <div class="status-line">
-          {{ status_text | default('กำลังตรวจสอบข้อมูล') }}
+          <span id="status-text">กำลังตรวจสอบข้อมูล</span>
           <span class="dots"><span></span><span></span><span></span></span>
         </div>
 
-        <div class="step-dots">
-          <span class="on"></span><span class="on"></span><span></span><span></span>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+
+        <div class="step-dots" id="step-dots">
+          <span></span><span></span><span></span><span></span>
         </div>
 
         <div class="hint">การดำเนินการนี้อาจใช้เวลาสักครู่ กรุณาอย่าปิดหน้าต่างนี้</div>
       </div>
 
-      <div class="phase state-{{ result_state | default('success') }}" id="phase-result">
-        {% if (result_state | default('success')) == 'success' %}
+      <div class="phase state-success" id="phase-result">
+        
         <div class="confetti" id="confetti"></div>
-        {% endif %}
+        
 
         <div class="result-icon-wrap">
           <div class="result-ring"></div>
           <div class="result-icon">
-            {% if (result_state | default('success')) == 'success' %}
+            
               <svg viewBox="0 0 24 24" class="draw-icon" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6" class="draw-circle"/><path d="M7.5 12.5l3 3 6-6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="draw-check"/></svg>
-            {% elif (result_state | default('success')) == 'processing' %}
-              <div class="spinner"></div>
-            {% else %}
-              <svg viewBox="0 0 24 24" class="draw-icon" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6" class="draw-circle"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="draw-check"/></svg>
-            {% endif %}
+            
           </div>
         </div>
 
-        <h1 class="result-title">{{ result_title | default('ให้ยศสำเร็จ') }}</h1>
+        <h1 class="result-title">ให้ยศสำเร็จ</h1>
 
-        {% if user %}
+        
         <div class="user-info">
           <div class="user-info-top">
-            <img src="{{ user.avatar_url }}" alt="Avatar" class="user-avatar">
+            <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Avatar" class="user-avatar">
             <div class="user-details">
-              <div class="user-name">{{ user.username }}</div>
-              <div class="user-id">@{{ user.global_name or user.username }}</div>
-              <div class="user-uid">ID: {{ user.id }}</div>
+              <div class="user-name">exampleuser</div>
+              <div class="user-id">@Example</div>
+              <div class="user-uid">ID: 123456789012345678</div>
             </div>
           </div>
-          {% if (result_state | default('success')) == 'success' and role_name %}
+          
           <div class="role-badge">
             <span class="role-dot"></span>
-            <span class="role-name">{{ role_name }}</span>
+            <span class="role-name">Verified Member</span>
           </div>
-          {% endif %}
+          
         </div>
-        {% endif %}
+        
 
-        <p class="result-message">{{ result_message | default('คุณได้รับยศเรียบร้อยแล้ว ยินดีต้อนรับเข้าสู่เซิร์ฟเวอร์') }}</p>
+        <p class="result-message">คุณได้รับยศเรียบร้อยแล้ว ยินดีต้อนรับเข้าสู่เซิร์ฟเวอร์</p>
 
-        <a href="{{ button_url | default('https://discord.com/app') }}"
-           class="result-btn {{ 'btn-success' if (result_state | default('success')) == 'success' else 'btn-retry' }}">
-          {{ button_text | default('กลับไปที่ Discord') }}
+        <a href="https://discord.com/app"
+           class="result-btn btn-success">
+          กลับไปที่ Discord
         </a>
       </div>
 
@@ -643,21 +661,46 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
     })();
 
-    const CHECK_DELAY_MS = 3000;
-    const RESULT_STATE = "{{ result_state | default('success') }}";
+    const STEPS = ["\u0e01\u0e33\u0e25\u0e31\u0e07\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e02\u0e49\u0e2d\u0e21\u0e39\u0e25", "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e22\u0e37\u0e19\u0e22\u0e31\u0e19\u0e15\u0e31\u0e27\u0e15\u0e19", "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e40\u0e0a\u0e37\u0e48\u0e2d\u0e21\u0e15\u0e48\u0e2d\u0e40\u0e0b\u0e34\u0e23\u0e4c\u0e1f\u0e40\u0e27\u0e2d\u0e23\u0e4c", "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e2a\u0e23\u0e38\u0e1b\u0e1c\u0e25"];
+    const STEP_DURATION_MS = 750;
+    const RESULT_STATE = "success";
 
-    setTimeout(function () {
+    const statusText = document.getElementById('status-text');
+    const progressFill = document.getElementById('progress-fill');
+    const stepDots = document.querySelectorAll('#step-dots span');
+
+    function runStep(i) {
+      if (i >= STEPS.length) {
+        finish();
+        return;
+      }
+      statusText.style.animation = 'none';
+      statusText.offsetHeight;
+      statusText.style.animation = null;
+      statusText.textContent = STEPS[i];
+
+      const dotIndex = Math.min(i, stepDots.length - 1);
+      stepDots[dotIndex].classList.add('on');
+
+      progressFill.style.width = (((i + 1) / STEPS.length) * 100) + '%';
+
+      setTimeout(() => runStep(i + 1), STEP_DURATION_MS);
+    }
+
+    function finish() {
       const checking = document.getElementById('phase-checking');
       const result = document.getElementById('phase-result');
       checking.classList.remove('active');
       result.classList.add('active');
       document.body.classList.remove('phase-checking');
       document.body.classList.add('phase-' + RESULT_STATE);
-      
+
       if (RESULT_STATE === 'success') {
         spawnConfetti();
       }
-    }, CHECK_DELAY_MS);
+    }
+
+    runStep(0);
   </script>
 
 </body>
@@ -780,14 +823,17 @@ async def on_ready():
 @app_commands.checks.has_permissions(administrator=True)
 async def setup(interaction: discord.Interaction):
     embed = discord.Embed(
-        title="ยืนยันตัวตนเพื่อเข้าดิส",
-        description="- `🔗` **คำแนะนำ**\n- **กดปุ่มด้านล่าง** \n - `เพื่อทำการยืนยันตัวตนผ่านเว็บไซต์` \n- **และกดอนุญาตสิทธิ์**",
-        color=0x000000,
+        title="⚙️ STIF SHOP",
+        description=f"🛒   บอทรับยศ 24 ชั่วโมง\n\n"
+                    f"📥 กดปุ่มข้างล่างเพื่อรับยศ <@&{ROLE_ID}>",
+        color=discord.Color(0x000000)
     )
-    embed.set_image(
-        url="https://media.discordapp.net/attachments/1368314450217537546/1539233761412128818/f18a8b0d0e4e8b47fa8773ed012896fc2.jpg"
+    embed.set_footer(
+        text="🟢• STIF SHOP • ระบบรับยศ",
+        icon_url='a239f6f8e7b79dc0778026dc092ce241.gif'
     )
-
+    embed.set_image(url="https://i.postimg.cc/W1cgyyrs/STIF-SHOP-banner.gif")
+    embed.set_thumbnail(url='a239f6f8e7b79dc0778026dc092ce241.gif')
     await interaction.response.send_message("✅ สร้างปุ่มยืนยันตัวตนสำเร็จ!", ephemeral=True)
     await interaction.channel.send(embed=embed, view=VerifyView())
 
