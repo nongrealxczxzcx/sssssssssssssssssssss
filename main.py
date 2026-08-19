@@ -389,32 +389,47 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       event.preventDefault();
 
       const discordWebUrl = "{{ button_url | default('https://discord.com/app') }}";
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const ua = navigator.userAgent;
+      const isAndroid = /Android/i.test(ua);
+      const isIOS = /iPhone|iPad|iPod/i.test(ua);
 
-      if (!isMobile) {
-        window.location.href = discordWebUrl;
+      if (isAndroid) {
+        // Chrome on Android doesn't recognize bare custom schemes like
+        // "discord://" as a real link — with no app registered to catch it,
+        // it falls through to a Google search instead of failing quietly.
+        // The intent:// syntax is the documented way around this: Chrome
+        // checks whether the given package is installed and opens it
+        // directly, or follows S.browser_fallback_url if it isn't.
+        window.location.href =
+          'intent://#Intent;scheme=discord;package=com.discord;S.browser_fallback_url=' +
+          encodeURIComponent(discordWebUrl) + ';end';
         return;
       }
 
-      let fellBack = false;
-      const fallbackTimer = setTimeout(function () {
-        if (!fellBack) {
-          fellBack = true;
-          window.location.href = discordWebUrl;
-        }
-      }, 1500);
+      if (isIOS) {
+        let fellBack = false;
+        const fallbackTimer = setTimeout(function () {
+          if (!fellBack) {
+            fellBack = true;
+            window.location.href = discordWebUrl;
+          }
+        }, 1500);
 
-      // If the app opened, the page goes hidden (backgrounded) before
-      // the fallback timer fires — cancel the web fallback in that case.
-      document.addEventListener('visibilitychange', function onVis() {
-        if (document.hidden) {
-          fellBack = true;
-          clearTimeout(fallbackTimer);
-          document.removeEventListener('visibilitychange', onVis);
-        }
-      });
+        // If the app opened, the page goes hidden (backgrounded) before
+        // the fallback timer fires — cancel the web fallback in that case.
+        document.addEventListener('visibilitychange', function onVis() {
+          if (document.hidden) {
+            fellBack = true;
+            clearTimeout(fallbackTimer);
+            document.removeEventListener('visibilitychange', onVis);
+          }
+        });
 
-      window.location.href = 'discord://';
+        window.location.href = 'discord://';
+        return;
+      }
+
+      window.location.href = discordWebUrl;
     }
 
     document.getElementById('discord-btn').addEventListener('click', openDiscord);
