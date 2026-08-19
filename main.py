@@ -296,7 +296,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="card-glow"></div>
     <div class="card">
 
-      <!-- Phase 1: หน้าจอตรวจสอบ/โหลดอัตโนมัติ -->
       <div class="phase active" id="phase-checking">
         <div class="eyebrow">ระบบยืนยันตัวตน</div>
         <div class="loader">
@@ -321,9 +320,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       <div class="phase" id="phase-result">
         <div class="confetti" id="confetti"></div>
 
-        <h1 class="result-title">{{ result_title | default('') }}</h1>
-
-        {% if user %}
         <div class="discord-profile-card">
           <div class="discord-banner-area">
             <div class="status-bubble">
