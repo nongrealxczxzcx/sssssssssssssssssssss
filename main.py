@@ -726,8 +726,6 @@ def callback():
     code = request.args.get("code")
     error = request.args.get("error")
 
-    print(f"[/callback] hit — code={'yes' if code else 'no'} error={error} args={dict(request.args)}")
-
     if error:
         return render_template_string(
             HTML_TEMPLATE,
@@ -761,9 +759,6 @@ def callback():
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     token_resp = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
-
-    if token_resp.status_code != 200:
-        print(f"[/callback] token exchange failed: {token_resp.status_code} {token_resp.text}")
 
     access_token = token_resp.json().get("access_token")
 
@@ -815,8 +810,6 @@ def callback():
             role_name=get_role_name(GUILD_ID, ROLE_ID) or "Verified",
         )
     else:
-
-        print(f"[/callback] add role failed: {r.status_code} {r.text}")
         return render_template_string(
             HTML_TEMPLATE,
             title="เกิดข้อผิดพลาด",
@@ -829,29 +822,24 @@ def callback():
         )
 
 
-@app.errorhandler(404)
-def not_found(e):
-    print(f"[404] {request.method} {request.path} args={dict(request.args)}")
-    return "Not Found", 404
-
-
 def run_web():
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=5000)
 
 
 class VerifyBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
         super().__init__(command_prefix="!", intents=intents)
+        
+        # เพิ่มปุ่มยืนยันตัวตนถาวร (Persistent View)
+        self.add_view(VerifyView())
 
     async def setup_hook(self):
         await self.tree.sync()
-        print("🔄 ซิงค์ Slash Commands สำเร็จแล้ว")
+        print(f"Logged in as {self.user} (ID: {self.user.id})")
 
-
-bot = VerifyBot()
-
+    async def on_ready(self):
+        print(f"Bot พร้อมใช้งานแล้ว: {self.user}")
 
 class VerifyView(discord.ui.View):
     def __init__(self):
@@ -865,35 +853,7 @@ class VerifyView(discord.ui.View):
             )
         )
 
-
-@bot.event
-async def on_ready():
-    print(f"🤖 บอทเข้าสู่ระบบแล้ว: {bot.user.name}")
-
-    activity = discord.Streaming(name="อยากดูหี", url="https://www.twitch.tv/Jxycop_x")
-    await bot.change_presence(status=discord.Status.idle, activity=activity)
-
-
-@bot.tree.command(name="setup", description="ส่งหน้าต่างยืนยันตัวตนสำหรับสมาชิก")
-@app_commands.checks.has_permissions(administrator=True)
-async def setup(interaction: discord.Interaction):
-    embed = discord.Embed(
-        title="ยืนยันตัวตนเพื่อเข้าดิส",
-        description="- `🔗` **คำแนะนำ**\n- **กดปุ่มด้านล่าง** \n - `เพื่อทำการยืนยันตัวตนผ่านเว็บไซต์` \n- **และกดอนุญาตสิทธิ์**",
-        color=0x000000,
-    )
-    embed.set_image(
-        url="https://media.discordapp.net/attachments/1368314450217537546/1539233761412128818/f18a8b0d0e4e8b47fa8773ed012896fc2.jpg"
-    )
-
-    await interaction.response.send_message("✅ สร้างปุ่มยืนยันตัวตนสำเร็จ!", ephemeral=True)
-    await interaction.channel.send(embed=embed, view=VerifyView())
-
-
-@setup.error
-async def setup_error(interaction: discord.Interaction, error):
-    if isinstance(error, app_commands.errors.MissingPermissions):
-        await interaction.response.send_message("❌ คุณไม่มีสิทธิ์ใช้งานคำสั่งนี้", ephemeral=True)
+bot = VerifyBot()
 
 if __name__ == "__main__":
     web_thread = threading.Thread(target=run_web)
