@@ -774,14 +774,18 @@ def callback():
             user=user_info,
         )
 
+
 class VerifyView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-
-    @discord.ui.button(label="ยืนยันตัวตน", style=discord.ButtonStyle.green, emoji="<a:emoji_125:1283873278129213471>", custom_id="verify_button")
-    async def verify_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        verify_url = "https://discord.com/oauth2/authorize?client_id=1292567654405771334&response_type=code&redirect_uri=https%3A%2F%2Fsdfsafasfasfsafasf.onrender.com%2Fcallback&scope=identify+guilds.join"
-        await interaction.response.send_message(f"คลิกลิงก์นี้เพื่อยืนยันตัวตน: {verify_url}", ephemeral=True)
+        self.add_item(
+            discord.ui.Button(
+                label="ยืนยันตัวตนเข้าดิส",
+                url="https://discord.com/oauth2/authorize?client_id=1292567654405771334&response_type=code&redirect_uri=https%3A%2F%2Fsdfsafasfasfsafasf.onrender.com%2Fcallback&scope=identify+guilds.join",
+                style=discord.ButtonStyle.link,
+                emoji="<a:emoji_125:1283873278129213471>",
+            )
+        )
 
 @bot.event
 async def on_ready():
