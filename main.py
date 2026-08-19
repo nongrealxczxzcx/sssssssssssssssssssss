@@ -267,12 +267,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
   <div class="discord-profile-card">
     
-    <!-- Banner จำลอง -->
     <div class="discord-banner" style="background-image: url('{{ banner_url | default('') }}');"></div>
 
     <div class="discord-body">
 
-      <!-- ระยะเวลากำลังตรวจสอบ (Phase Checking) -->
       <div class="phase active" id="phase-checking">
         <div class="loading-box">
           <div class="spinner-discord"></div>
@@ -281,7 +279,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- ระยะเวลาแสดงผลลัพธ์ (Phase Result) -->
       <div class="phase" id="phase-result">
         
         <div class="discord-header-row">
@@ -308,8 +305,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           
           <div class="divider"></div>
 
-          <!-- บทบาท (Roles) -->
-          <div class="section-title">บทบาท (Roles)</div>
+          <div class="section-title">บทบาท</div>
           <div class="roles-container">
             {% if role_name %}
             <div class="role-tag">
@@ -325,19 +321,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
           <div class="divider"></div>
 
-          <!-- วันที่เข้าร่วมเซิร์ฟเวอร์จำลอง -->
           <div class="member-info">
             <span>DISCORD MEMBER • ตั้งแต่ระบบเชื่อมต่อสำเร็จ</span>
           </div>
         </div>
         {% endif %}
 
-        <!-- ข้อความแจ้งผลลัพธ์ -->
         <div style="font-size: 0.85rem; color: var(--discord-text-normal); margin-bottom: 14px; text-align: center;">
           {{ result_message | default('เพิ่มยศเข้าสู่บัญชีของคุณเรียบร้อยแล้ว!') }}
         </div>
 
-        <!-- ปุ่มกลับไป Discord -->
         <a href="{{ button_url | default('https://discord.com/app') }}" class="discord-btn-primary">
           {{ button_text | default('กลับไปที่ Discord') }}
         </a>
@@ -348,7 +341,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <script>
-    const CHECK_DELAY_MS = 3000; // จำลองเวลาโหลด 3 วิ
+    const CHECK_DELAY_MS = 5000; 
     setTimeout(function () {
       document.getElementById('phase-checking').classList.remove('phase', 'active');
       document.getElementById('phase-checking').style.display = 'none';
