@@ -380,11 +380,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <script>
-    // Opens the Discord app when the user taps the button.
-    // Runs only from a real tap (a genuine user gesture), which is
-    // what lets mobile browsers allow the custom-scheme redirect at all.
-    // Falls back to the web app if the native app doesn't open within
-    // a short window (checked via page visibility, not a fixed guess).
     function openDiscord(event) {
       event.preventDefault();
 
@@ -394,12 +389,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const isIOS = /iPhone|iPad|iPod/i.test(ua);
 
       if (isAndroid) {
-        // Chrome on Android doesn't recognize bare custom schemes like
-        // "discord://" as a real link — with no app registered to catch it,
-        // it falls through to a Google search instead of failing quietly.
-        // The intent:// syntax is the documented way around this: Chrome
-        // checks whether the given package is installed and opens it
-        // directly, or follows S.browser_fallback_url if it isn't.
         window.location.href =
           'intent://#Intent;scheme=discord;package=com.discord;S.browser_fallback_url=' +
           encodeURIComponent(discordWebUrl) + ';end';
@@ -415,8 +404,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           }
         }, 1500);
 
-        // If the app opened, the page goes hidden (backgrounded) before
-        // the fallback timer fires — cancel the web fallback in that case.
         document.addEventListener('visibilitychange', function onVis() {
           if (document.hidden) {
             fellBack = true;
