@@ -191,13 +191,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .status-line .dots span:nth-child(3){animation-delay:0.3s;}
   @keyframes bounce{ 0%,80%,100%{transform:translateY(0); opacity:0.5;} 40%{transform:translateY(-4px); opacity:1;} }
 
-  .result-title {
-    font-family: 'Kanit', sans-serif;
-    font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;
-    background: linear-gradient(90deg, #57F287, #22d3ee);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-
   .discord-profile-card {
     background: #0b0c0e; border-radius: 16px; overflow: hidden;
     text-align: left; margin-bottom: 16px;
@@ -295,7 +288,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="card-glow"></div>
     <div class="card">
 
-      <!-- Phase 1: หน้าจอตรวจสอบ/โหลดอัตโนมัติ -->
       <div class="phase active" id="phase-checking">
         <div class="eyebrow">ระบบยืนยันตัวตน</div>
         <div class="loader">
@@ -316,7 +308,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- Phase 2: หน้าจอผลลัพธ์สำเร็จ -->
       <div class="phase" id="phase-result">
         <div class="confetti" id="confetti"></div>
 
@@ -368,25 +359,32 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         <p class="result-message">{{ result_message | default('ระบบได้เพิ่มยศให้คุณเรียบร้อยแล้ว') }}</p>
 
-        <a href="discord://" class="discord-btn-primary" onclick="openDiscord(event)">
+        <button type="button" class="discord-btn-primary" onclick="openDiscord(event)">
           {{ button_text | default('กลับไปที่ Discord') }}
-        </a>
+        </button>
       </div>
 
     </div>
   </div>
 
   <script>
-    // ดักจับการกดปุ่ม Back หรือปัดย้อนกลับในมือถือ ให้เปิดแอป Discord โดยตรงทันที
     history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', function (event) {
-      window.location.href = 'discord://';
+      openDiscord();
     });
 
     function openDiscord(event) {
       if (event) event.preventDefault();
-      // บังคับเปิดแอป Discord ผ่าน Deep Link โดยไม่สลับไปเว็บเบราว์เซอร์
+      
       window.location.href = 'discord://';
+
+      setTimeout(function() {
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = 'discord://';
+        document.body.appendChild(iframe);
+        setTimeout(() => iframe.remove(), 1000);
+      }, 300);
     }
 
     function spawnConfetti() {
