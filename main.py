@@ -38,7 +38,6 @@ def thai_date(dt=None):
  
  
 HTML_TEMPLATE = """<!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -296,6 +295,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="card-glow"></div>
     <div class="card">
 
+      <!-- Phase 1: หน้าจอตรวจสอบ/โหลดอัตโนมัติ -->
       <div class="phase active" id="phase-checking">
         <div class="eyebrow">ระบบยืนยันตัวตน</div>
         <div class="loader">
@@ -320,6 +320,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       <div class="phase" id="phase-result">
         <div class="confetti" id="confetti"></div>
 
+        <h1 class="result-title">{{ result_title | default('ให้ยศสำเร็จ') }}</h1>
+
         <div class="discord-profile-card">
           <div class="discord-banner-area">
             <div class="status-bubble">
@@ -331,16 +333,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <div class="discord-content-area">
             <div class="discord-avatar-container">
               <div class="discord-avatar-wrapper">
-                <img src="{{ user.avatar_url }}" alt="Avatar" class="discord-user-avatar">
+                <img src="{{ user.avatar_url if user and user.avatar_url else 'https://cdn.discordapp.com/embed/avatars/0.png' }}" alt="Avatar" class="discord-user-avatar">
                 <div class="avatar-status-dot"></div>
               </div>
             </div>
 
-            <div class="display-name-main">{{ user.username | default('jxycopstepmod') }}</div>
+            <div class="display-name-main">{{ user.username if user and user.username else 'jxycopstepmod' }}</div>
             <div class="user-handle-sub">
-              <span>@{{ user.username | default('jxycopstepmod') }}</span>
+              <span>@{{ user.username if user and user.username else 'jxycopstepmod' }}</span>
               <span>•</span>
-              <span>ID: {{ user.id | default('1183718234806038563') }}</span>
+              <span>ID: {{ user.id if user and user.id else '1183718234806038563' }}</span>
             </div>
 
             <div class="divider-line"></div>
@@ -365,11 +367,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
           </div>
         </div>
-        {% endif %}
 
         <p class="result-message">{{ result_message | default('ระบบได้เพิ่มยศให้คุณเรียบร้อยแล้ว') }}</p>
 
-        <a href="{{ button_url | default('https://discord.com/app') }}" class="discord-btn-primary" onclick="openDiscord(event)">
+        <a href="discord://" class="discord-btn-primary" onclick="openDiscord(event)">
           {{ button_text | default('กลับไปที่ Discord') }}
         </a>
       </div>
@@ -378,6 +379,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <script>
+    // ดักจับการกดปุ่ม Back หรือปัดย้อนกลับในมือถือ
     history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', function (event) {
       openDiscord(null);
@@ -385,11 +387,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function openDiscord(event) {
       if (event) event.preventDefault();
+      
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
       if (isMobile) {
+        // พยายามเปิดแอป Discord ผ่าน Deep Link
         window.location.href = 'discord://';
-        setTimeout(() => { window.location.href = 'https://discord.com/app'; }, 1500);
+        
+        // เผื่อกรณีแอปไม่ได้ติดตั้ง จะสำรองเปิดเว็บ Discord หลังผ่านไป 1.5 วินาที
+        setTimeout(() => {
+          window.location.href = 'https://discord.com/app';
+        }, 1500);
       } else {
+        // ถ้าเปิดจากคอมพิวเตอร์ ไปที่เว็บ Discord ปกติ
         window.location.href = 'https://discord.com/app';
       }
     }
