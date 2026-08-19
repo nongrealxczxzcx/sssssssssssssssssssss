@@ -824,6 +824,7 @@ class VerifyView(discord.ui.View):
                 label="ยืนยันตัวตนเข้าดิส",
                 url=discord_login_url,
                 style=discord.ButtonStyle.link,
+                emoji="<a:emoji_125:1283873278129213471>",
             )
         )
 
