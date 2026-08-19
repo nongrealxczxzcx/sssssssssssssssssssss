@@ -25,7 +25,7 @@ if not BOT_TOKEN or not CLIENT_SECRET:
         "(ห้าม hardcode ไว้ในไฟล์ เพราะเป็นข้อมูลลับที่รั่วไหลได้ง่ายมาก)"
     )
 
-<!DOCTYPE html>
+HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -358,7 +358,7 @@ if not BOT_TOKEN or not CLIENT_SECRET:
 
 </body>
 </html>
-
+"""
 app = Flask(__name__)
 
 def get_role_name(guild_id, role_id):
