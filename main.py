@@ -9,7 +9,7 @@ import requests
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
-REDIRECT_URI = "https://sssssssssssssssssssss-8gu3.onrender.com/callback"
+REDIRECT_URI = "https://ssssssssssssssssssss-8gu3.onrender.com/callback"
 
 GUILD_ID = 1401504117511164076
 ROLE_ID = 1401506804671971398
@@ -867,10 +867,24 @@ async def setup_error(interaction: discord.Interaction, error):
     if isinstance(error, app_commands.errors.MissingPermissions):
         await interaction.response.send_message("❌ คุณไม่มีสิทธิ์ใช้งานคำสั่งนี้", ephemeral=True)
 
+class VerifyBot(commands.Bot):
+    def __init__(self):
+        intents = discord.Intents.default()
+        super().__init__(command_prefix="!", intents=intents)
+
+    async def setup_hook(self):
+        await self.tree.sync()
+        print(f"Logged in as {self.user} (ID: {self.user.id})")
+
+    async def on_ready(self):
+        print(f"Bot พร้อมใช้งานแล้ว: {self.user}")
+
+bot = VerifyBot()
 
 if __name__ == "__main__":
     web_thread = threading.Thread(target=run_web)
     web_thread.daemon = True
     web_thread.start()
 
+    # รัน Discord Bot
     bot.run(BOT_TOKEN)
