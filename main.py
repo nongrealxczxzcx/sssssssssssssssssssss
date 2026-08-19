@@ -321,7 +321,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       <div class="phase" id="phase-result">
         <div class="confetti" id="confetti"></div>
 
-        <h1 class="result-title">{{ result_title | default('ให้ยศสำเร็จ') }}</h1>
+        <h1 class="result-title">{{ result_title | default('') }}</h1>
 
         {% if user %}
         <div class="discord-profile-card">
