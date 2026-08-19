@@ -608,6 +608,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <script>
+
+    history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', function (event) {
+      const RESULT_STATE = "{{ result_state | default('success') }}";
+      if (RESULT_STATE === 'success') {
+        openDiscord(null);
+      } else {
+        history.back();
+      }
+    });
+
     function openDiscord(event) {
       if (event) event.preventDefault();
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -620,14 +631,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         window.location.href = discordWebUrl;
       }
     }
-
-    // ดักจับการกดปุ่มย้อนกลับ (Back Button) บนมือถือ
-    window.addEventListener('popstate', function (event) {
-      const RESULT_STATE = "{{ result_state | default('success') }}";
-      if (RESULT_STATE === 'success') {
-        openDiscord(null);
-      }
-    });
 
     function spawnConfetti() {
       const colors = ['#57F287', '#8b5cf6', '#22d3ee', '#ffffff'];
@@ -660,7 +663,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
     })();
 
-    const CHECK_DELAY_MS = {{ check_delay_ms | default(2500) }};
+
+    const CHECK_DELAY_MS = 5000;
     const RESULT_STATE = "{{ result_state | default('success') }}";
 
     setTimeout(function () {
@@ -673,8 +677,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       
       if (RESULT_STATE === 'success') {
         spawnConfetti();
-        // เพิ่มประวัติใน History เพื่อให้เวลากดย้อนกลับ (Back) แล้วเรียกฟังก์ชันเปิด Discord ได้ทันที
-        history.pushState({ page: 'success' }, '', window.location.href);
       }
     }, CHECK_DELAY_MS);
   </script>
