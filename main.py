@@ -258,20 +258,30 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
   .result-message { margin-bottom: 16px; color: #b5bac1; font-size: 0.86rem; font-weight: 400; }
 
-  .discord-btn-primary {
+  .result-btn {
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    width: 100%; background: linear-gradient(135deg, #23a55a, #1f934e);
-    color: #fff; font-weight: 600; font-size: 0.95rem; padding: 12px;
+    width: 100%; color: #fff; font-weight: 600; font-size: 0.95rem; padding: 12px;
     border-radius: 12px; text-decoration: none; border: none; cursor: pointer;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     font-family: 'Sarabun', 'Kanit', sans-serif;
+  }
+  .btn-success {
+    background: linear-gradient(135deg, #23a55a, #1f934e);
     box-shadow: 0 6px 20px rgba(35, 165, 90, 0.4);
   }
-  .discord-btn-primary:hover {
+  .btn-success:hover {
     background: linear-gradient(135deg, #26b763, #22a55a);
     transform: translateY(-2px); box-shadow: 0 8px 25px rgba(35, 165, 90, 0.6);
   }
-  .discord-btn-primary:active { transform: scale(0.98); }
+  .btn-retry {
+    background: linear-gradient(135deg, #ED4245, #c93639);
+    box-shadow: 0 6px 20px rgba(237, 66, 69, 0.4);
+  }
+  .btn-retry:hover {
+    background: linear-gradient(135deg, #f05457, #ED4245);
+    transform: translateY(-2px); box-shadow: 0 8px 25px rgba(237, 66, 69, 0.6);
+  }
+  .result-btn:active { transform: scale(0.98); }
 
   @keyframes confettiFall{ 0%{transform:translateY(-20px) rotate(0deg); opacity:1;} 100%{transform:translateY(240px) rotate(360deg); opacity:0;} }
   .confetti{ position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:0; }
@@ -359,9 +369,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         <p class="result-message">{{ result_message | default('ระบบได้เพิ่มยศให้คุณเรียบร้อยแล้ว') }}</p>
 
-        <button type="button" class="discord-btn-primary" onclick="openDiscord(event)">
+        <a href="{{ button_url | default('https://discord.com/app') }}"
+           class="result-btn {{ 'btn-success' if (result_state | default('success')) == 'success' else 'btn-retry' }}"
+           {% if (result_state | default('success')) == 'success' %}onclick="openDiscord(event)"{% endif %}>
           {{ button_text | default('กลับไปที่ Discord') }}
-        </button>
+        </a>
       </div>
 
     </div>
@@ -370,21 +382,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <script>
     history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', function (event) {
-      openDiscord();
+      const RESULT_STATE = "{{ result_state | default('success') }}";
+      if (RESULT_STATE === 'success') {
+        openDiscord(null);
+      } else {
+        history.back();
+      }
     });
 
     function openDiscord(event) {
       if (event) event.preventDefault();
-      
-      window.location.href = 'discord://';
-
-      setTimeout(function() {
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = 'discord://';
-        document.body.appendChild(iframe);
-        setTimeout(() => iframe.remove(), 1000);
-      }, 300);
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const discordAppUrl = 'discord://';
+      const discordWebUrl = 'https://discord.com/app';
+      if (isMobile) {
+        window.location.href = discordAppUrl;
+        setTimeout(() => { window.location.href = discordWebUrl; }, 1500);
+      } else {
+        window.location.href = discordWebUrl;
+      }
     }
 
     function spawnConfetti() {
