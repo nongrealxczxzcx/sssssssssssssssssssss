@@ -50,7 +50,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   html,body{
     height:100%;
     min-height:100dvh;
-    background: #000;
+    background: #0b0d13;
     overflow-x:hidden;
     font-family:'Sarabun','Kanit',sans-serif;
     color: var(--discord-text-normal);
@@ -60,6 +60,43 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     align-items:center;
     justify-content:center;
     padding:16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* พื้นหลัง (Background Effects) */
+  .bg-glow-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .glow-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.35;
+    animation: floatOrb 10s ease-in-out infinite alternate;
+  }
+  .glow-1 { width: 300px; height: 300px; background: #5865f2; top: -100px; left: -100px; }
+  .glow-2 { width: 350px; height: 350px; background: #eb459e; bottom: -120px; right: -100px; animation-delay: -5s; }
+  .glow-3 { width: 250px; height: 250px; background: #23a55a; top: 40%; left: 60%; opacity: 0.2; animation-duration: 14s; }
+  @keyframes floatOrb {
+    0% { transform: translateY(0px) scale(1); }
+    100% { transform: translateY(30px) scale(1.1); }
+  }
+  .bg-grid {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 32px 32px;
+    z-index: 2;
+    pointer-events: none;
   }
 
   /* Discord Profile Modal Card */
@@ -69,7 +106,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     background: var(--discord-modal);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08);
     position: relative;
     z-index: 10;
     animation: cardIn 0.5s cubic-bezier(.2,.8,.2,1) both;
@@ -128,22 +165,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }
 
   /* Action Buttons Top Right */
-  .discord-actions-top {
-    display: flex;
-    gap: 8px;
-  }
+  .discord-actions-top { display: flex; gap: 8px; }
   .icon-btn {
     background: var(--discord-input);
-    border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--discord-text-normal);
-    cursor: pointer;
-    transition: background 0.2s;
+    border: none; width: 36px; height: 36px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: var(--discord-text-normal); cursor: pointer; transition: background 0.2s;
   }
   .icon-btn:hover { background: #35363c; }
   .icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
@@ -184,86 +211,58 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     margin-bottom: 8px;
   }
   .roles-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 12px;
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;
   }
   .role-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--discord-input);
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    color: var(--discord-text-normal);
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--discord-input); padding: 4px 10px; border-radius: 6px;
+    font-size: 0.8rem; color: var(--discord-text-normal);
     border: 1px solid rgba(255,255,255,0.04);
   }
   .role-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+    width: 8px; height: 8px; border-radius: 50%;
     background: {{ role_color | default('#57F287') }};
   }
 
   /* Member Since */
   .member-info {
-    font-size: 0.82rem;
-    color: var(--discord-text-muted);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    font-size: 0.82rem; color: var(--discord-text-muted);
+    margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
   }
 
   /* Action Button Bottom */
   .discord-btn-primary {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    background: var(--discord-blurple);
-    color: #fff;
-    font-weight: 600;
-    font-size: 0.95rem;
-    padding: 10px;
-    border-radius: 4px;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    transition: background 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; background: var(--discord-blurple); color: #fff;
+    font-weight: 600; font-size: 0.95rem; padding: 10px; border-radius: 4px;
+    text-decoration: none; border: none; cursor: pointer; transition: background 0.2s;
     font-family: 'Sarabun', sans-serif;
   }
   .discord-btn-primary:hover { background: #4752c4; }
 
-  /* Checking / Loading state overlay */
+  /* Phase Control */
   .phase { display: none; }
   .phase.active { display: block; }
   
-  .loading-box {
-    text-align: center;
-    padding: 30px 10px;
-  }
+  .loading-box { text-align: center; padding: 30px 10px; }
   .spinner-discord {
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--discord-input);
-    border-top-color: var(--discord-blurple);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px auto;
+    width: 40px; height: 40px; border: 3px solid var(--discord-input);
+    border-top-color: var(--discord-blurple); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 16px auto;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text {
-    font-size: 0.95rem;
-    color: var(--discord-text-normal);
-    font-weight: 500;
-  }
+  .loading-text { font-size: 0.95rem; color: var(--discord-text-normal); font-weight: 500; }
 </style>
 </head>
 <body>
+
+  <!-- เลเยอร์พื้นหลัง -->
+  <div class="bg-glow-container">
+    <div class="glow-orb glow-1"></div>
+    <div class="glow-orb glow-2"></div>
+    <div class="glow-orb glow-3"></div>
+  </div>
+  <div class="bg-grid"></div>
 
   <div class="discord-profile-card">
     
@@ -271,7 +270,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     <div class="discord-body">
 
-      <div class="phase active" id="phase-checking">
+      <!-- Phase 1: หน้าจอตรวจสอบเริ่มต้น (Verification Gate) -->
+      <div class="phase active" id="phase-verify">
+        <div class="loading-box" style="padding: 15px 0;">
+          <div style="font-size: 2.2rem; margin-bottom: 8px;">🛡️</div>
+          <div class="display-name" style="margin-bottom: 4px;">ระบบตรวจสอบสิทธิ์</div>
+          <div class="username-sub" style="margin-bottom: 20px;">กรุณายืนยันตัวตนเพื่อรับยศอัตโนมัติ</div>
+          <button type="button" class="discord-btn-primary" onclick="startVerification()">
+            <span>ยืนยันตัวตน (Verify)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Phase 2: หน้าจอโหลดกำลังตรวจสอบ -->
+      <div class="phase" id="phase-checking">
         <div class="loading-box">
           <div class="spinner-discord"></div>
           <div class="loading-text">{{ status_text | default('กำลังตรวจสอบและเพิ่มยศ...') }}</div>
@@ -279,6 +291,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
       </div>
 
+      <!-- Phase 3: หน้าจอผลลัพธ์โปรไฟล์ Discord -->
       <div class="phase" id="phase-result">
         
         <div class="discord-header-row">
@@ -298,9 +311,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         {% if user %}
         <div class="discord-user-info-box">
-          <!-- Display Name -->
+          <!-- ชื่อใหญ่ (Global Name หรือ Username) -->
           <div class="display-name">{{ user.global_name or user.username }}</div>
-          <!-- Username -->
+          <!-- ชื่อ Username รองด้านล่าง -->
           <div class="username-sub">@{{ user.username }}</div>
           
           <div class="divider"></div>
@@ -341,12 +354,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <script>
-    const CHECK_DELAY_MS = 5000; 
-    setTimeout(function () {
-      document.getElementById('phase-checking').classList.remove('phase', 'active');
-      document.getElementById('phase-checking').style.display = 'none';
-      document.getElementById('phase-result').classList.add('active');
-    }, CHECK_DELAY_MS);
+    function startVerification() {
+      const verifyPhase = document.getElementById('phase-verify');
+      verifyPhase.classList.remove('active');
+      verifyPhase.style.display = 'none';
+      
+      const checkingPhase = document.getElementById('phase-checking');
+      checkingPhase.classList.add('active');
+      checkingPhase.style.display = 'block';
+
+      const CHECK_DELAY_MS = 4000; 
+      setTimeout(function () {
+        checkingPhase.classList.remove('active');
+        checkingPhase.style.display = 'none';
+        document.getElementById('phase-result').classList.add('active');
+      }, CHECK_DELAY_MS);
+    }
   </script>
 
 </body>
