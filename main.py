@@ -117,7 +117,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     opacity:0.6;
   }
 
-  /* floating particles — signature ambient detail */
   .particles{ position:fixed; inset:0; pointer-events:none; z-index:2; }
   .particle{
     position:absolute;
@@ -138,7 +137,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     100%{ transform:translateY(-100vh) translateX(calc(var(--px,10px) * -1)); opacity:0; }
   }
 
-  /* ---------- card shell ---------- */
   .card-wrap{ position:relative; z-index:10; width:100%; max-width:380px; }
   .card-glow{
     position:absolute; inset:-3px; border-radius:23px;
@@ -206,12 +204,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }
   .eyebrow::after{ background:linear-gradient(90deg, var(--text-lo), transparent); }
 
-  /* ---------- phases ---------- */
   .phase{ display:none; position:relative; z-index:3; }
   .phase.active{ display:block; animation:phaseIn 0.55s cubic-bezier(.2,.8,.2,1) both; }
   @keyframes phaseIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
 
-  /* ---------- checking phase ---------- */
   .loader{
     position:relative;
     width:clamp(84px, 22vw, 100px);
@@ -221,7 +217,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     align-items:center;
     justify-content:center;
   }
-  /* soft sonar rings breathing outward — no rotation */
   .sonar{
     position:absolute;
     inset:0;
@@ -238,7 +233,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     100%{ transform:scale(1.15); opacity:0; }
   }
 
-  /* rich mesh-gradient halo, colour drifting in place — no rotation */
   .halo{
     position:absolute;
     inset:6%;
@@ -269,7 +263,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       0 0 26px rgba(139,92,246,0.4);
   }
 
-  /* twinkling sparks inside the orb — opacity/scale only, never rotate */
   .spark{
     position:absolute;
     width:3px; height:3px;
@@ -288,7 +281,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     50%{ transform:scale(1.4); opacity:1; }
   }
 
-  /* faceted crystal core, breathing */
   .core{
     position:absolute; top:50%; left:50%;
     width:20px; height:20px; margin:-10px 0 0 -10px;
@@ -366,7 +358,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     font-weight:300;
   }
 
-  /* ---------- result phase ---------- */
   @keyframes successPop{ 0%{transform:scale(0.7); opacity:0;} 100%{transform:scale(1); opacity:1;} }
   @keyframes shake{ 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-5px);} 40%,80%{transform:translateX(5px);} }
   @keyframes badgeIn{ 0%{transform:translateY(10px) scale(0.9); opacity:0;} 100%{transform:translateY(0) scale(1); opacity:1;} }
@@ -532,7 +523,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="card-glow"></div>
     <div class="card">
 
-      <!-- phase 1: checking -->
       <div class="phase active" id="phase-checking">
         <div class="eyebrow">ระบบยืนยันตัวตน</div>
 
@@ -566,7 +556,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <div class="hint">การดำเนินการนี้อาจใช้เวลาสักครู่ กรุณาอย่าปิดหน้าต่างนี้</div>
       </div>
 
-      <!-- phase 2: result -->
       <div class="phase state-{{ result_state | default('success') }}" id="phase-result">
         {% if (result_state | default('success')) == 'success' %}
         <div class="confetti" id="confetti"></div>
@@ -628,7 +617,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         window.location.href = discordAppUrl;
         setTimeout(() => { window.location.href = discordWebUrl; }, 1500);
       } else {
-        window.location.href = discordWebUrl;
+        window.location.href = discordAppUrl;
       }
     }
 
@@ -646,7 +635,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
     }
 
-    // ambient floating particles
     (function spawnParticles() {
       const wrap = document.getElementById('particles');
       const colors = ['#8b5cf6', '#22d3ee', '#ec4899'];
@@ -664,7 +652,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
     })();
 
-    // transition from "checking" to the result phase after the check completes
     const CHECK_DELAY_MS = {{ check_delay_ms | default(2500) }};
     const RESULT_STATE = "{{ result_state | default('success') }}";
 
@@ -687,7 +674,6 @@ app = Flask(__name__)
 
 
 def get_role_name(guild_id, role_id):
-    """ดึงชื่อยศจริงจาก Discord API เพื่อเอาไปโชว์ใน role-badge"""
     try:
         resp = requests.get(
             f"https://discord.com/api/v10/guilds/{guild_id}/roles",
@@ -826,13 +812,26 @@ def run_web():
     app.run(host="0.0.0.0", port=5000)
 
 
+class VerifyView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        discord_login_url = (
+            f"https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}"
+            f"&redirect_uri={REDIRECT_URI}&response_type=code&scope=identify%20guilds.join"
+        )
+        self.add_item(
+            discord.ui.Button(
+                label="ยืนยันตัวตนเข้าดิส",
+                url=discord_login_url,
+                style=discord.ButtonStyle.link,
+            )
+        )
+
+
 class VerifyBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
         super().__init__(command_prefix="!", intents=intents)
-        
-        # เพิ่มปุ่มยืนยันตัวตนถาวร (Persistent View)
-        self.add_view(VerifyView())
 
     async def setup_hook(self):
         await self.tree.sync()
@@ -841,19 +840,23 @@ class VerifyBot(commands.Bot):
     async def on_ready(self):
         print(f"Bot พร้อมใช้งานแล้ว: {self.user}")
 
-class VerifyView(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
-        self.add_item(
-            discord.ui.Button(
-                label="ยืนยันตัวตนเข้าดิส",
-                url="https://discord.com/oauth2/authorize?client_id=1292567654405771334&response_type=code&redirect_uri=https%3A%2F%2Fsssssssssssssssssssss-5l9s.onrender.com%2Fcallback&scope=identify+guilds.join",
-                style=discord.ButtonStyle.link,
-                emoji="<a:emoji_125:1283873278129213471>",
-            )
-        )
 
 bot = VerifyBot()
+
+@bot.tree.command(name="setup", description="ส่งหน้าต่างยืนยันตัวตนสำหรับสมาชิก")
+@app_commands.checks.has_permissions(administrator=True)
+async def setup(interaction: discord.Interaction):
+    embed = discord.Embed(
+        title="ยืนยันตัวตนเพื่อเข้าดิส",
+        description="- `🔗` **คำแนะนำ**\n- **กดปุ่มด้านล่าง** \n - `เพื่อทำการยืนยันตัวตนผ่านเว็บไซต์` \n- **และกดอนุญาตสิทธิ์**",
+        color=0x000000,
+    )
+    embed.set_image(
+        url="https://media.discordapp.net/attachments/1368314450217537546/1539233761412128818/f18a8b0d0e4e8b47fa8773ed012896fc2.jpg"
+    )
+
+    await interaction.response.send_message("✅ สร้างปุ่มยืนยันตัวตนสำเร็จ!", ephemeral=True)
+    await interaction.channel.send(embed=embed, view=VerifyView())
 
 if __name__ == "__main__":
     web_thread = threading.Thread(target=run_web)
