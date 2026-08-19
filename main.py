@@ -603,8 +603,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <p class="result-message">{{ result_message | default('คุณได้รับยศเรียบร้อยแล้ว ยินดีต้อนรับเข้าสู่เซิร์ฟเวอร์') }}</p>
 
         <a href="{{ button_url | default('https://discord.com/app') }}"
-           class="result-btn {{ 'btn-success' if (result_state | default('success')) == 'success' else 'btn-retry' }}"
-           {% if (result_state | default('success')) == 'success' %}onclick="openDiscord(event)"{% endif %}>
+           class="result-btn {{ 'btn-success' if (result_state | default('success')) == 'success' else 'btn-retry' }}">
           {{ button_text | default('กลับไปที่ Discord') }}
         </a>
       </div>
@@ -613,30 +612,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <script>
-
-    history.pushState(null, '', window.location.href);
-    window.addEventListener('popstate', function (event) {
-      const RESULT_STATE = "{{ result_state | default('success') }}";
-      if (RESULT_STATE === 'success') {
-        openDiscord(null);
-      } else {
-        history.back();
-      }
-    });
-
-    function openDiscord(event) {
-      if (event) event.preventDefault();
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const discordAppUrl = 'discord://';
-      const discordWebUrl = 'https://discord.com/app';
-      if (isMobile) {
-        window.location.href = discordAppUrl;
-        setTimeout(() => { window.location.href = discordWebUrl; }, 1500);
-      } else {
-        window.location.href = discordWebUrl;
-      }
-    }
-
     function spawnConfetti() {
       const colors = ['#57F287', '#8b5cf6', '#22d3ee', '#ffffff'];
       const container = document.getElementById('confetti');
@@ -668,8 +643,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
     })();
 
-
-    const CHECK_DELAY_MS = 5000;
+    const CHECK_DELAY_MS = 3000;
     const RESULT_STATE = "{{ result_state | default('success') }}";
 
     setTimeout(function () {
