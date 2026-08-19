@@ -59,7 +59,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     min-height:100dvh;
     padding:calc(20px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
   }
- 
+
   /* ---------- background atmosphere ---------- */
   .noise{
     position:fixed;inset:0;
@@ -100,11 +100,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }
   body.phase-success .blob-3{ background:radial-gradient(circle at 50% 50%, var(--green), transparent 70%); }
   body.phase-error .blob-3{ background:radial-gradient(circle at 50% 50%, var(--red), transparent 70%); }
- 
+
   @keyframes drift1{ 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(4vw,3vh) scale(1.12);} }
   @keyframes drift2{ 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-3vw,-2vh) scale(1.08);} }
   @keyframes drift3{ 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(2vw,-3vh) scale(1.15);} }
- 
+
   .stars{
     position:fixed;inset:0;
     background-image:
@@ -116,7 +116,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       radial-gradient(1px 1px at 10% 60%, rgba(255,255,255,0.3), transparent);
     opacity:0.6;
   }
- 
+
   /* floating particles — signature ambient detail */
   .particles{ position:fixed; inset:0; pointer-events:none; z-index:2; }
   .particle{
@@ -137,7 +137,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     92%{ opacity:0.4; }
     100%{ transform:translateY(-100vh) translateX(calc(var(--px,10px) * -1)); opacity:0; }
   }
- 
+
   /* ---------- card shell ---------- */
   .card-wrap{ position:relative; z-index:10; width:100%; max-width:380px; }
   .card-glow{
@@ -156,7 +156,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }
   body.phase-success .card-glow{ background:linear-gradient(120deg, var(--green), var(--cyan), var(--green)); background-size:300% 300%; opacity:0.45; }
   body.phase-error .card-glow{ background:linear-gradient(120deg, var(--red), var(--magenta), var(--red)); background-size:300% 300%; opacity:0.45; }
- 
+
   .card{
     position:relative;
     width:100%;
@@ -175,7 +175,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }
   @keyframes cardIn{ from{opacity:0; transform:translateY(14px) scale(0.97);} to{opacity:1; transform:translateY(0) scale(1);} }
   @keyframes floatCard{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
- 
+
   .card::before{
     content:"";
     position:absolute;
@@ -188,7 +188,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     z-index:2;
   }
   @keyframes cardSheen{ 0%{left:-70%;} 35%{left:130%;} 100%{left:130%;} }
- 
+
   .eyebrow{
     display:inline-flex; align-items:center; gap:6px;
     font-size:clamp(10px, 2.6vw, 11px);
@@ -205,12 +205,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     background:linear-gradient(90deg, transparent, var(--text-lo));
   }
   .eyebrow::after{ background:linear-gradient(90deg, var(--text-lo), transparent); }
- 
+
   /* ---------- phases ---------- */
   .phase{ display:none; position:relative; z-index:3; }
   .phase.active{ display:block; animation:phaseIn 0.55s cubic-bezier(.2,.8,.2,1) both; }
   @keyframes phaseIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
- 
+
   /* ---------- checking phase ---------- */
   .loader{
     position:relative;
@@ -237,7 +237,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     12%{ opacity:0.9; }
     100%{ transform:scale(1.15); opacity:0; }
   }
- 
+
   /* rich mesh-gradient halo, colour drifting in place — no rotation */
   .halo{
     position:absolute;
@@ -255,7 +255,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     0%,100%{ filter:blur(11px) saturate(140%) hue-rotate(0deg); opacity:0.55; transform:scale(1); }
     50%{ filter:blur(14px) saturate(170%) hue-rotate(30deg); opacity:0.8; transform:scale(1.06); }
   }
- 
+
   .glass{
     position:absolute;
     inset:14%;
@@ -268,7 +268,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       inset 0 -6px 14px rgba(0,0,0,0.35),
       0 0 26px rgba(139,92,246,0.4);
   }
- 
+
   /* twinkling sparks inside the orb — opacity/scale only, never rotate */
   .spark{
     position:absolute;
@@ -287,7 +287,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     0%,100%{ transform:scale(0.4); opacity:0; }
     50%{ transform:scale(1.4); opacity:1; }
   }
- 
+
   /* faceted crystal core, breathing */
   .core{
     position:absolute; top:50%; left:50%;
@@ -298,7 +298,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     animation:breathe 2.4s ease-in-out infinite;
   }
   @keyframes breathe{ 0%,100%{transform:scale(1); filter:brightness(1);} 50%{transform:scale(1.28); filter:brightness(1.25);} }
- 
+
   .title{
     font-family:'Kanit',sans-serif;
     font-weight:600;
@@ -319,7 +319,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     margin-bottom:clamp(22px, 5.5vw, 28px);
     padding:0 4px;
   }
- 
+
   .status-line{
     display:flex; align-items:center; justify-content:center; gap:10px;
     width:100%; padding:13px 16px; border-radius:12px;
@@ -345,7 +345,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     animation:sweep 2.6s ease-in-out infinite;
   }
   @keyframes sweep{ 0%{left:-60%;} 60%{left:130%;} 100%{left:130%;} }
- 
+
   .step-dots{
     display:flex; justify-content:center; gap:6px;
     margin-top:20px;
@@ -358,14 +358,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     background:var(--cyan);
     box-shadow:0 0 6px 1px var(--cyan);
   }
- 
+
   .hint{
     margin-top:16px;
     font-size:clamp(10.5px, 2.9vw, 11.5px);
     color:rgba(150,149,172,0.7);
     font-weight:300;
   }
- 
+
   /* ---------- result phase ---------- */
   @keyframes successPop{ 0%{transform:scale(0.7); opacity:0;} 100%{transform:scale(1); opacity:1;} }
   @keyframes shake{ 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-5px);} 40%,80%{transform:translateX(5px);} }
@@ -374,11 +374,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   @keyframes confettiFall{ 0%{transform:translateY(-20px) rotate(0deg); opacity:1;} 100%{transform:translateY(220px) rotate(360deg); opacity:0;} }
   @keyframes drawCircle{ from{ stroke-dashoffset:64; } to{ stroke-dashoffset:0; } }
   @keyframes drawCheck{ from{ stroke-dashoffset:24; } to{ stroke-dashoffset:0; } }
- 
+
   .confetti{ position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:0; }
   .confetti span{ position:absolute; top:-10px; width:6px; height:10px; border-radius:1px; opacity:0.9; animation:confettiFall 2.6s ease-in forwards; }
   #phase-result > *:not(.confetti){ position:relative; z-index:1; }
- 
+
   .result-icon-wrap{ position:relative; width:clamp(80px, 20vw, 92px); height:clamp(80px, 20vw, 92px); margin:0 auto clamp(20px, 5vw, 24px); }
   .result-ring{
     position:absolute; inset:0; border-radius:50%;
@@ -419,7 +419,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   #phase-result.state-processing .result-icon{
     background:radial-gradient(circle, rgba(139,92,246,0.2), rgba(139,92,246,0.05));
   }
- 
+
   .result-title{
     font-family:'Kanit',sans-serif;
     font-size:clamp(20px, 5.2vw, 23px);
@@ -430,7 +430,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   #phase-result.state-success .result-title{ color:var(--green); }
   #phase-result.state-error .result-title{ color:var(--red); }
   #phase-result.state-processing .result-title{ color:var(--violet); }
- 
+
   .result-message{
     font-size:clamp(13px, 3.6vw, 14.5px);
     color:var(--text-lo);
@@ -438,7 +438,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     margin-bottom:clamp(20px, 5.5vw, 24px);
     font-weight:300;
   }
- 
+
   .user-info{
     display:flex; flex-direction:column; gap:12px;
     background:rgba(0,0,0,0.24); border-radius:14px;
@@ -478,7 +478,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     flex-shrink:0;
     animation:breathe 2.4s ease-in-out infinite;
   }
- 
+
   .role-badge{
     display:flex; align-items:center; justify-content:center; gap:8px;
     padding:10px 20px;
@@ -492,7 +492,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }
   .role-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; background:{{ role_color | default('#57F287') }}; box-shadow:0 0 8px {{ role_color | default('#57F287') }}; }
   .role-name{ font-weight:600; font-size:0.9rem; color:var(--text-hi); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
- 
+
   .result-btn{
     display:inline-flex; align-items:center; justify-content:center; gap:9px;
     padding:15px 26px;
@@ -519,23 +519,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </style>
 </head>
 <body class="phase-checking">
- 
+
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
   <div class="blob blob-3"></div>
   <div class="stars"></div>
- 
+
   <div class="particles" id="particles"></div>
   <div class="noise"></div>
- 
+
   <div class="card-wrap">
     <div class="card-glow"></div>
     <div class="card">
- 
+
       <!-- phase 1: checking -->
       <div class="phase active" id="phase-checking">
         <div class="eyebrow">ระบบยืนยันตัวตน</div>
- 
+
         <div class="loader">
           <div class="sonar s1"></div>
           <div class="sonar s2"></div>
@@ -548,30 +548,30 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <span class="spark sp4"></span>
           <div class="core"></div>
         </div>
- 
+
         <div class="title">{{ title | default('กำลังตรวจสอบ') }}</div>
         <div class="subtitle">
           {{ subtitle | default('ระบบกำลังตรวจสอบสิทธิ์ของคุณ<br>โปรดรอสักครู่ ระบบใกล้จะเสร็จสมบูรณ์แล้ว') | safe }}
         </div>
- 
+
         <div class="status-line">
           {{ status_text | default('กำลังตรวจสอบข้อมูล') }}
           <span class="dots"><span></span><span></span><span></span></span>
         </div>
- 
+
         <div class="step-dots">
           <span class="on"></span><span class="on"></span><span></span><span></span>
         </div>
- 
+
         <div class="hint">การดำเนินการนี้อาจใช้เวลาสักครู่ กรุณาอย่าปิดหน้าต่างนี้</div>
       </div>
- 
+
       <!-- phase 2: result -->
       <div class="phase state-{{ result_state | default('success') }}" id="phase-result">
         {% if (result_state | default('success')) == 'success' %}
         <div class="confetti" id="confetti"></div>
         {% endif %}
- 
+
         <div class="result-icon-wrap">
           <div class="result-ring"></div>
           <div class="result-icon">
@@ -584,9 +584,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             {% endif %}
           </div>
         </div>
- 
+
         <h1 class="result-title">{{ result_title | default('ให้ยศสำเร็จ') }}</h1>
- 
+
         {% if user %}
         <div class="user-info">
           <div class="user-info-top">
@@ -605,19 +605,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           {% endif %}
         </div>
         {% endif %}
- 
+
         <p class="result-message">{{ result_message | default('คุณได้รับยศเรียบร้อยแล้ว ยินดีต้อนรับเข้าสู่เซิร์ฟเวอร์') }}</p>
- 
+
         <a href="{{ button_url | default('https://discord.com/app') }}"
            class="result-btn {{ 'btn-success' if (result_state | default('success')) == 'success' else 'btn-retry' }}"
            {% if (result_state | default('success')) == 'success' %}onclick="openDiscord(event)"{% endif %}>
           {{ button_text | default('กลับไปที่ Discord') }}
         </a>
       </div>
- 
+
     </div>
   </div>
- 
+
   <script>
     function openDiscord(event) {
       event.preventDefault();
@@ -631,7 +631,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         window.location.href = discordWebUrl;
       }
     }
- 
+
     function spawnConfetti() {
       const colors = ['#57F287', '#8b5cf6', '#22d3ee', '#ffffff'];
       const container = document.getElementById('confetti');
@@ -645,7 +645,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         container.appendChild(piece);
       }
     }
- 
+
     // ambient floating particles
     (function spawnParticles() {
       const wrap = document.getElementById('particles');
@@ -663,11 +663,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         wrap.appendChild(p);
       }
     })();
- 
+
     // transition from "checking" to the result phase after the check completes
     const CHECK_DELAY_MS = {{ check_delay_ms | default(2500) }};
     const RESULT_STATE = "{{ result_state | default('success') }}";
- 
+
     setTimeout(function () {
       const checking = document.getElementById('phase-checking');
       const result = document.getElementById('phase-result');
@@ -678,7 +678,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (RESULT_STATE === 'success') spawnConfetti();
     }, CHECK_DELAY_MS);
   </script>
- 
+
 </body>
 </html>
 """
@@ -721,9 +721,25 @@ def home():
     )
 
 
-@app.route("/callback")
+@app.route("/callback", strict_slashes=False)
 def callback():
     code = request.args.get("code")
+    error = request.args.get("error")
+
+    print(f"[/callback] hit — code={'yes' if code else 'no'} error={error} args={dict(request.args)}")
+
+    if error:
+        return render_template_string(
+            HTML_TEMPLATE,
+            title="เกิดข้อผิดพลาด",
+            result_state="error",
+            result_title="เกิดข้อผิดพลาด",
+            result_message=f"Discord ปฏิเสธการเข้าสู่ระบบ: {error}",
+            button_url="/",
+            button_text="กลับไปหน้าหลัก",
+            user=None,
+        )
+
     if not code:
         return render_template_string(
             HTML_TEMPLATE,
@@ -744,8 +760,12 @@ def callback():
         "redirect_uri": REDIRECT_URI,
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    response = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
-    access_token = response.json().get("access_token")
+    token_resp = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
+
+    if token_resp.status_code != 200:
+        print(f"[/callback] token exchange failed: {token_resp.status_code} {token_resp.text}")
+
+    access_token = token_resp.json().get("access_token")
 
     if not access_token:
         return render_template_string(
@@ -771,7 +791,6 @@ def callback():
     else:
         avatar_url = "https://cdn.discordapp.com/embed/avatars/0.png"
 
-
     user_info = {
         "id": user_id,
         "username": username,
@@ -796,6 +815,8 @@ def callback():
             role_name=get_role_name(GUILD_ID, ROLE_ID) or "Verified",
         )
     else:
+
+        print(f"[/callback] add role failed: {r.status_code} {r.text}")
         return render_template_string(
             HTML_TEMPLATE,
             title="เกิดข้อผิดพลาด",
@@ -808,8 +829,15 @@ def callback():
         )
 
 
+@app.errorhandler(404)
+def not_found(e):
+    print(f"[404] {request.method} {request.path} args={dict(request.args)}")
+    return "Not Found", 404
+
+
 def run_web():
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
 
 
 class VerifyBot(commands.Bot):
