@@ -609,7 +609,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
   <script>
     function openDiscord(event) {
-      event.preventDefault();
+      if (event) event.preventDefault();
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       const discordAppUrl = 'discord://';
       const discordWebUrl = 'https://discord.com/app';
@@ -617,9 +617,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         window.location.href = discordAppUrl;
         setTimeout(() => { window.location.href = discordWebUrl; }, 1500);
       } else {
-        window.location.href = discordAppUrl;
+        window.location.href = discordWebUrl;
       }
     }
+
+    // ดักจับการกดปุ่มย้อนกลับ (Back Button) บนมือถือ
+    window.addEventListener('popstate', function (event) {
+      const RESULT_STATE = "{{ result_state | default('success') }}";
+      if (RESULT_STATE === 'success') {
+        openDiscord(null);
+      }
+    });
 
     function spawnConfetti() {
       const colors = ['#57F287', '#8b5cf6', '#22d3ee', '#ffffff'];
@@ -662,7 +670,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       result.classList.add('active');
       document.body.classList.remove('phase-checking');
       document.body.classList.add('phase-' + RESULT_STATE);
-      if (RESULT_STATE === 'success') spawnConfetti();
+      
+      if (RESULT_STATE === 'success') {
+        spawnConfetti();
+        // เพิ่มประวัติใน History เพื่อให้เวลากดย้อนกลับ (Back) แล้วเรียกฟังก์ชันเปิด Discord ได้ทันที
+        history.pushState({ page: 'success' }, '', window.location.href);
+      }
     }, CHECK_DELAY_MS);
   </script>
 
