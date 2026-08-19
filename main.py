@@ -320,8 +320,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       <div class="phase" id="phase-result">
         <div class="confetti" id="confetti"></div>
 
-        <h1 class="result-title">{{ result_title | default('ให้ยศสำเร็จ') }}</h1>
-
         <div class="discord-profile-card">
           <div class="discord-banner-area">
             <div class="status-bubble">
