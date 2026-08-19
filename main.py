@@ -714,7 +714,7 @@ def callback():
     access_token = token_resp.json().get("access_token")
 
     if not access_token:
-        return "เกิดข้อผิดพลาดในการดึง Token", 400
+        return "เกิดข้อผิดพลาด", 400
 
     user_data = requests.get("https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {access_token}"}).json()
     user_id = user_data.get("id")
