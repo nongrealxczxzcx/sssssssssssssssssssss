@@ -62,7 +62,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     --discord-bg: #111214;
     --discord-modal: #2b2d31;
     --discord-input: #1e1f22;
-    --discord-blurple: #5865f2;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{
@@ -158,7 +157,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     100%{ transform:translateY(-100vh) translateX(calc(var(--px,10px) * -1)); opacity:0; }
   }
 
-  .card-wrap{ position:relative; z-index:10; width:100%; max-width:380px; }
+  .card-wrap{ position:relative; z-index:10; width:100%; max-width:390px; }
   .card-glow{
     position:absolute; inset:-3px; border-radius:23px;
     background:linear-gradient(120deg, var(--violet), var(--cyan), var(--magenta), var(--violet));
@@ -179,7 +178,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .card{
     position:relative;
     width:100%;
-    padding:clamp(30px, 7vw, 40px) clamp(20px, 6vw, 30px) clamp(24px, 5vw, 30px);
+    padding:clamp(28px, 6vw, 36px) clamp(20px, 5vw, 28px) clamp(24px, 5vw, 28px);
     background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
     border:1px solid var(--card-border);
     border-radius:20px;
@@ -215,7 +214,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     letter-spacing:1.6px;
     text-transform:uppercase;
     color:var(--text-lo);
-    margin-bottom:clamp(16px, 4vw, 20px);
+    margin-bottom:clamp(14px, 3.5vw, 18px);
     opacity:0.85;
   }
   .eyebrow::before, .eyebrow::after{
@@ -233,7 +232,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     position:relative;
     width:clamp(84px, 22vw, 100px);
     height:clamp(84px, 22vw, 100px);
-    margin:0 auto clamp(20px, 5vw, 26px);
+    margin:0 auto clamp(18px, 4vw, 24px);
     display:flex;
     align-items:center;
     justify-content:center;
@@ -329,7 +328,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     line-height:1.6;
     color:var(--text-lo);
     font-weight:300;
-    margin-bottom:clamp(18px, 4.5vw, 24px);
+    margin-bottom:clamp(16px, 4vw, 22px);
     padding:0 4px;
   }
 
@@ -385,137 +384,150 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .confetti span{ position:absolute; top:-10px; width:6px; height:10px; border-radius:1px; opacity:0.9; animation:confettiFall 2.6s ease-in forwards; }
   #phase-result > *:not(.confetti){ position:relative; z-index:1; }
 
-  /* Discord Profile Box Theme */
-  .discord-profile-preview {
-    background: var(--discord-modal);
-    border-radius: 12px;
+  /* Discord Profile Box Theme matching image */
+  .discord-profile-card {
+    background: #1e393b;
+    border-radius: 14px;
     overflow: hidden;
     text-align: left;
     margin-bottom: 14px;
     border: 1px solid rgba(255,255,255,0.08);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
   }
-  .discord-banner {
+  .discord-banner-area {
     width: 100%;
-    height: 65px;
-    background: #35363c;
+    height: 75px;
+    background: linear-gradient(90deg, #8b5cf6, #ec4899, #22d3ee);
     background-size: cover;
     background-position: center;
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding: 8px;
   }
-  .discord-body-box {
-    padding: 0 12px 12px 12px;
+  /* ป้ายยืนยันตัวตนมุมขวาบนแบนเนอร์ */
+  .verified-badge-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #f2f3f5;
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .verified-badge-top svg {
+    width: 12px;
+    height: 12px;
+    fill: var(--green);
+  }
+
+  .discord-content-area {
+    padding: 0 14px 14px 14px;
     position: relative;
   }
-  .discord-avatar-row {
+  .discord-avatar-container {
     display: flex;
     align-items: flex-end;
-    margin-top: -26px;
-    margin-bottom: 6px;
+    margin-top: -30px;
+    margin-bottom: 8px;
   }
-  .discord-avatar-wrap {
+  .discord-avatar-wrapper {
     position: relative;
-    width: 56px;
-    height: 56px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
-    background: var(--discord-modal);
+    background: #1e393b;
     padding: 3px;
   }
-  .discord-avatar {
+  .discord-user-avatar {
     width: 100%;
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
   }
-  .discord-status-dot {
+  /* ติ๊กถูกที่มุมรูปโปรไฟล์ */
+  .avatar-check-icon {
     position: absolute;
     bottom: 2px;
     right: 2px;
-    width: 11px;
-    height: 11px;
-    background: var(--green);
-    border: 2px solid var(--discord-modal);
+    width: 18px;
+    height: 18px;
+    background: var(--discord-modal);
     border-radius: 50%;
-  }
-  .discord-user-info-box {
-    background: var(--discord-bg);
-    border-radius: 8px;
-    padding: 10px;
-  }
-  .display-name {
-    font-family: 'Kanit', sans-serif;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #f2f3f5;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .username-sub {
-    font-size: 0.78rem;
-    color: #949ba4;
-    margin-bottom: 6px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .divider {
-    height: 1px;
-    background: #3f4147;
-    margin: 8px 0;
-  }
-  .section-title {
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: #949ba4;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
-  }
-  .roles-container {
     display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-  .role-tag {
-    display: inline-flex;
     align-items: center;
-    gap: 5px;
-    background: var(--discord-input);
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 0.74rem;
-    color: #dbdee1;
-    border: 1px solid rgba(255,255,255,0.04);
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   }
-  .role-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: {{ role_color | default('#57F287') }};
+  .avatar-check-icon svg {
+    width: 12px;
+    height: 12px;
+    fill: var(--green);
   }
 
-  /* Discord Blurple Primary Button */
+  .display-name-main {
+    font-family: 'Kanit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 1.2;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .user-handle-sub {
+    font-size: 0.78rem;
+    color: #b5bac1;
+    margin-bottom: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .divider-line {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 10px 0;
+  }
+  .verify-date-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.76rem;
+    color: #b5bac1;
+  }
+  .verify-date-row svg {
+    width: 13px;
+    height: 13px;
+    fill: #b5bac1;
+  }
+
+  /* Discord Green Primary Button */
   .discord-btn-primary {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     width: 100%;
-    background: var(--discord-blurple);
+    background: linear-gradient(135deg, #23a55a, #188344);
     color: #fff;
-    font-weight: 600;
-    font-size: 0.92rem;
-    padding: 12px;
-    border-radius: 8px;
+    font-weight: 650;
+    font-size: 0.95rem;
+    padding: 13px;
+    border-radius: 12px;
     text-decoration: none;
     border: none;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-    font-family: 'Sarabun', sans-serif;
-    box-shadow: 0 4px 14px rgba(88, 101, 242, 0.35);
+    transition: all 0.2s;
+    font-family: 'Sarabun', 'Kanit', sans-serif;
+    box-shadow: 0 4px 16px rgba(35, 165, 90, 0.4);
   }
-  .discord-btn-primary:hover { background: #4752c4; transform: translateY(-1px); }
+  .discord-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(35, 165, 90, 0.55); }
   .discord-btn-primary:active { transform: scale(0.98); }
 </style>
 </head>
@@ -574,42 +586,46 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         {% endif %}
 
         <h1 class="result-title" style="font-family:'Kanit',sans-serif; font-size:1.3rem; font-weight:600; margin-bottom:12px; color:var(--green);">
-          {{ result_title | default('เพิ่มยศสำเร็จ!') }}
+          {{ result_title | default('ให้ยศสำเร็จ') }}
         </h1>
 
         {% if user %}
-        <div class="discord-profile-preview">
-          <div class="discord-banner" style="background-image: url('{{ banner_url | default('') }}');"></div>
-          <div class="discord-body-box">
-            <div class="discord-avatar-row">
-              <div class="discord-avatar-wrap">
-                <img src="{{ user.avatar_url }}" alt="Avatar" class="discord-avatar">
-                <div class="discord-status-dot"></div>
+        <div class="discord-profile-card">
+          <!-- แบนเนอร์ด้านบนพร้อมป้ายยืนยันตัวตน -->
+          <div class="discord-banner-area" style="{% if banner_url %}background-image: url('{{ banner_url }}');{% endif %}">
+            <div class="verified-badge-top">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              ยืนยันตัวตนแล้ว
+            </div>
+          </div>
+
+          <div class="discord-content-area">
+            <div class="discord-avatar-container">
+              <div class="discord-avatar-wrapper">
+                <img src="{{ user.avatar_url }}" alt="Avatar" class="discord-user-avatar">
+                <!-- ติ๊กถูกที่มุมรูปโปรไฟล์ -->
+                <div class="avatar-check-icon">
+                  <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </div>
               </div>
             </div>
-            <div class="discord-user-info-box">
-              <!-- บรรทัดบน: แสดงชื่อหลัก (Global Name หรือ Username ถ้าไม่มี) -->
-              <div class="display-name">{{ user.global_name if user.global_name else user.username }}</div>
-              <!-- บรรทัดล่าง: แสดง @username จริงแบบ Discord -->
-              <div class="username-sub">@{{ user.username }}</div>
-              
-              <div class="divider"></div>
 
-              <div class="section-title">บทบาท</div>
-              <div class="roles-container">
-                {% if role_name %}
-                <div class="role-tag">
-                  <span class="role-dot" style="background: {{ role_color | default('#57F287') }};"></span>
-                  <span>{{ role_name }}</span>
-                </div>
-                {% endif %}
-              </div>
+            <!-- ชื่อหลักและ Username -->
+            <div class="display-name-main">{{ user.global_name if user.global_name else user.username }}</div>
+            <div class="user-handle-sub">@{{ user.username }} • ID: {{ user.id }}</div>
+
+            <div class="divider-line"></div>
+
+            <!-- วันที่ยืนยันตัวตน -->
+            <div class="verify-date-row">
+              <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+              <span>ยืนยันตัวตนเมื่อ วันนี้</span>
             </div>
           </div>
         </div>
         {% endif %}
 
-        <p class="result-message" style="margin-bottom:14px; color:var(--text-lo); font-size:0.85rem;">{{ result_message | default('คุณได้รับยศเข้าสู่บัญชีเรียบร้อยแล้ว ยินดีต้อนรับ!') }}</p>
+        <p class="result-message" style="margin-bottom:14px; color:var(--text-lo); font-size:0.85rem;">{{ result_message | default('ระบบได้เพิ่มยศให้คุณเรียบร้อยแล้ว') }}</p>
 
         <a href="{{ button_url | default('https://discord.com/app') }}" class="discord-btn-primary" {% if (result_state | default('success')) == 'success' %}onclick="openDiscord(event)"{% endif %}>
           {{ button_text | default('กลับไปที่ Discord') }}
