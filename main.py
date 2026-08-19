@@ -33,7 +33,6 @@ THAI_MONTHS = [
  
  
 def thai_date(dt=None):
-    """แปลงวันที่เป็นรูปแบบไทย เช่น '20 ส.ค. 2569' (ปี พ.ศ.)"""
     dt = dt or datetime.datetime.utcnow()
     return f"{dt.day} {THAI_MONTHS[dt.month]} {dt.year + 543}"
  
@@ -57,7 +56,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     --red:#ED4245;
     --text-hi:#f5f4fb;
     --text-lo:#9695ac;
-    --card-border:rgba(255,255,255,0.1);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{
@@ -258,7 +256,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .status-line .dots span:nth-child(3){animation-delay:0.3s;}
   @keyframes bounce{ 0%,80%,100%{transform:translateY(0); opacity:0.5;} 40%{transform:translateY(-4px); opacity:1;} }
 
-  /* UI โปรไฟล์เป๊ะตามรูปที่คุณส่งมา */
   .result-title {
     font-family: 'Kanit', sans-serif;
     font-size: 1.35rem;
@@ -267,6 +264,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     color: var(--green);
   }
 
+  /* Discord Profile Card */
   .discord-profile-card {
     background: #111e1f;
     border-radius: 12px;
@@ -277,10 +275,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   }
 
+  /* แบนเนอร์สีดำ */
   .discord-banner-area {
     width: 100%;
     height: 72px;
-    background: linear-gradient(90deg, #8b5cf6, #ec4899, #22d3ee);
+    background: #000000;
     background-size: cover;
     background-position: center;
     position: relative;
@@ -294,14 +293,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(4px);
     padding: 3px 9px;
     border-radius: 20px;
     font-size: 0.7rem;
     font-weight: 500;
     color: #f2f3f5;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.12);
   }
   .verified-badge-top svg {
     width: 11px;
@@ -382,6 +381,49 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     margin: 8px 0;
   }
 
+  /* ส่วนแสดงบทบาท (Roles) */
+  .section-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #949ba4;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .roles-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+  .role-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #1e1f22;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.74rem;
+    color: #dbdee1;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .role-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--role-color, #57F287);
+  }
+  .role-remove-icon {
+    width: 12px;
+    height: 12px;
+    fill: #949ba4;
+    cursor: pointer;
+    margin-left: 2px;
+  }
+  .role-remove-icon:hover {
+    fill: #f2f3f5;
+  }
+
   .verify-date-row {
     display: flex;
     align-items: center;
@@ -401,7 +443,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     font-size: 0.85rem;
   }
 
-  /* ปุ่มสีเขียวตามแบบในภาพ */
   .discord-btn-primary {
     display: flex;
     align-items: center;
@@ -474,7 +515,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         {% if user %}
         <div class="discord-profile-card">
-          <div class="discord-banner-area" style="{% if banner_url %}background-image: url('{{ banner_url }}');{% endif %}">
+          <!-- แบนเนอร์สีดำ -->
+          <div class="discord-banner-area">
             <div class="verified-badge-top">
               <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
               ยืนยันตัวตนแล้ว
@@ -493,6 +535,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             <div class="display-name-main">{{ user.global_name if user.global_name else user.username }}</div>
             <div class="user-handle-sub">@{{ user.username }} • ID: {{ user.id }}</div>
+
+            <div class="divider-line"></div>
+
+            <!-- ส่วนแสดงบทบาท (Roles) -->
+            <div class="section-title">บทบาท</div>
+            <div class="roles-container">
+              {% if role_name %}
+              <div class="role-tag">
+                <span class="role-dot" style="--role-color: {{ role_color | default('#57F287') }};"></span>
+                <span>{{ role_name }}</span>
+                <svg class="role-remove-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </div>
+              {% else %}
+              <div class="role-tag">
+                <span class="role-dot" style="--role-color: #57F287;"></span>
+                <span>ยืนยันเข้าโปรแกรมแล้ว</span>
+                <svg class="role-remove-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </div>
+              {% endif %}
+            </div>
 
             <div class="divider-line"></div>
 
