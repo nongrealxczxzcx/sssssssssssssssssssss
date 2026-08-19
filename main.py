@@ -830,10 +830,10 @@ async def setup(interaction: discord.Interaction):
     )
     embed.set_footer(
         text="🟢• STIF SHOP • ระบบรับยศ",
-        icon_url='a239f6f8e7b79dc0778026dc092ce241.gif'
+        icon_url='https://media.tenor.com/bhC8X-tsTK4AAAAi/tspchan1-lick.gif'
     )
     embed.set_image(url="https://i.postimg.cc/W1cgyyrs/STIF-SHOP-banner.gif")
-    embed.set_thumbnail(url='a239f6f8e7b79dc0778026dc092ce241.gif')
+    embed.set_thumbnail(url='https://media.tenor.com/bhC8X-tsTK4AAAAi/tspchan1-lick.gif')
     await interaction.response.send_message("✅ สร้างปุ่มยืนยันตัวตนสำเร็จ!", ephemeral=True)
     await interaction.channel.send(embed=embed, view=VerifyView())
 
