@@ -39,7 +39,6 @@ def thai_date(dt=None):
  
 HTML_TEMPLATE = """<!DOCTYPE html>
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -50,14 +49,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg-0:#07070c;
+    --bg-0:#050508;
     --violet:#8b5cf6;
     --magenta:#ec4899;
     --cyan:#22d3ee;
     --green:#23a55a;
     --red:#ED4245;
-    --text-hi:#f5f4fb;
-    --text-lo:#9695ac;
+    --text-hi:#ffffff;
+    --text-lo:#949ba4;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{
@@ -74,134 +73,72 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     position:relative;
     isolation:isolate;
     min-height:100dvh;
-    padding:calc(20px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+    padding:20px 16px;
+  }
+
+  .ambient-bg{
+    position:fixed;inset:0;pointer-events:none;z-index:1;
+    background:
+      radial-gradient(circle at 15% 15%, rgba(139, 92, 246, 0.15), transparent 45%),
+      radial-gradient(circle at 85% 85%, rgba(34, 211, 238, 0.12), transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(35, 165, 90, 0.1), transparent 55%);
+    transition:background 0.6s ease;
+  }
+  body.phase-success .ambient-bg{
+    background:
+      radial-gradient(circle at 15% 15%, rgba(35, 165, 90, 0.18), transparent 45%),
+      radial-gradient(circle at 85% 85%, rgba(34, 211, 238, 0.15), transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(35, 165, 90, 0.12), transparent 55%);
   }
 
   .noise{
     position:fixed;inset:0;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
-    mix-blend-mode:overlay;
-    pointer-events:none;
-    z-index:5;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    mix-blend-mode:overlay;pointer-events:none;z-index:2;
   }
-  .blob{
-    position:fixed;
-    border-radius:50%;
-    filter:blur(min(90px, 12vw));
+
+  .card-wrap{ position:relative; z-index:10; width:100%; max-width:420px; }
+  .card-glow{
+    position:absolute; inset:-2px; border-radius:24px;
+    background:linear-gradient(135deg, rgba(139,92,246,0.6), rgba(34,211,238,0.4), rgba(236,72,153,0.5));
+    filter:blur(16px);
     opacity:0.5;
-    will-change:transform;
+    z-index:-1;
+    animation:glowPulse 6s ease-in-out infinite;
     transition:background 0.6s ease;
   }
-  .blob-1{
-    width:clamp(260px, 62vw, 520px);
-    height:clamp(260px, 62vw, 520px);
-    background:radial-gradient(circle at 30% 30%, var(--violet), transparent 70%);
-    top:-14vh; left:-14vw;
-    animation:drift1 22s ease-in-out infinite;
+  @keyframes glowPulse{
+    0%,100%{ opacity:0.4; transform:scale(1); }
+    50%{ opacity:0.7; transform:scale(1.02); }
   }
-  .blob-2{
-    width:clamp(220px, 55vw, 460px);
-    height:clamp(220px, 55vw, 460px);
-    background:radial-gradient(circle at 60% 40%, var(--cyan), transparent 70%);
-    bottom:-16vh; right:-12vw;
-    animation:drift2 26s ease-in-out infinite;
+  body.phase-success .card-glow{
+    background:linear-gradient(135deg, rgba(35,165,90,0.6), rgba(34,211,238,0.4), rgba(35,165,90,0.5));
   }
-  .blob-3{
-    width:clamp(170px, 43vw, 360px);
-    height:clamp(170px, 43vw, 360px);
-    background:radial-gradient(circle at 50% 50%, var(--magenta), transparent 70%);
-    bottom:8%; left:6%;
-    opacity:0.32;
-    animation:drift3 30s ease-in-out infinite;
-  }
-  body.phase-success .blob-3{ background:radial-gradient(circle at 50% 50%, var(--green), transparent 70%); }
-  body.phase-error .blob-3{ background:radial-gradient(circle at 50% 50%, var(--red), transparent 70%); }
-
-  @keyframes drift1{ 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(4vw,3vh) scale(1.12);} }
-  @keyframes drift2{ 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-3vw,-2vh) scale(1.08);} }
-  @keyframes drift3{ 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(2vw,-3vh) scale(1.15);} }
-
-  .stars{
-    position:fixed;inset:0;
-    background-image:
-      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.5), transparent),
-      radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.4), transparent),
-      radial-gradient(1.5px 1.5px at 85% 60%, rgba(255,255,255,0.35), transparent),
-      radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.4), transparent),
-      radial-gradient(1px 1px at 60% 65%, rgba(255,255,255,0.3), transparent),
-      radial-gradient(1px 1px at 10% 60%, rgba(255,255,255,0.3), transparent);
-    opacity:0.6;
-  }
-
-  .particles{ position:fixed; inset:0; pointer-events:none; z-index:2; }
-  .particle{
-    position:absolute;
-    bottom:-6%;
-    width:var(--ps,4px); height:var(--ps,4px);
-    border-radius:50%;
-    background:var(--pc, var(--cyan));
-    box-shadow:0 0 6px 1px var(--pc, var(--cyan));
-    opacity:0;
-    animation:rise var(--pd,14s) linear infinite;
-    animation-delay:var(--pdelay,0s);
-  }
-  @keyframes rise{
-    0%{ transform:translateY(0) translateX(0); opacity:0; }
-    8%{ opacity:0.7; }
-    50%{ transform:translateY(-52vh) translateX(var(--px,10px)); }
-    92%{ opacity:0.4; }
-    100%{ transform:translateY(-100vh) translateX(calc(var(--px,10px) * -1)); opacity:0; }
-  }
-
-  .card-wrap{ position:relative; z-index:10; width:100%; max-width:410px; }
-  .card-glow{
-    position:absolute; inset:-3px; border-radius:23px;
-    background:linear-gradient(120deg, var(--violet), var(--cyan), var(--magenta), var(--violet));
-    background-size:300% 300%;
-    filter:blur(20px);
-    opacity:0.4;
-    z-index:-1;
-    animation:glowDrift 6s ease-in-out infinite;
-    transition:opacity 0.6s ease;
-  }
-  @keyframes glowDrift{
-    0%,100%{ background-position:0% 50%; opacity:0.35; }
-    50%{ background-position:100% 50%; opacity:0.55; }
-  }
-  body.phase-success .card-glow{ background:linear-gradient(120deg, var(--green), var(--cyan), var(--green)); background-size:300% 300%; opacity:0.45; }
-  body.phase-error .card-glow{ background:linear-gradient(120deg, var(--red), var(--magenta), var(--red)); background-size:300% 300%; opacity:0.45; }
 
   .card{
     position:relative;
     width:100%;
-    padding:clamp(20px, 4vw, 26px) clamp(16px, 4vw, 22px) clamp(20px, 4vw, 24px);
-    background:linear-gradient(180deg, rgba(15, 38, 38, 0.85), rgba(7, 20, 20, 0.9));
-    border:1px solid rgba(35, 165, 90, 0.25);
+    padding:26px 22px 24px;
+    background:linear-gradient(180deg, rgba(14, 24, 22, 0.95), rgba(8, 16, 15, 0.98));
+    border:1px solid rgba(35, 165, 90, 0.35);
     border-radius:22px;
-    backdrop-filter:blur(24px) saturate(150%);
-    -webkit-backdrop-filter:blur(24px) saturate(150%);
-    box-shadow:
-      0 30px 70px -20px rgba(0,0,0,0.8),
-      inset 0 1px 0 rgba(255,255,255,0.1);
+    backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    box-shadow: 0 24px 60px -15px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.12);
     text-align:center;
-    animation:cardIn 0.7s cubic-bezier(.2,.8,.2,1) both, floatCard 6.5s ease-in-out 0.7s infinite;
-    overflow:hidden;
+    animation:cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    overflow: hidden;
   }
-  @keyframes cardIn{ from{opacity:0; transform:translateY(14px) scale(0.97);} to{opacity:1; transform:translateY(0) scale(1);} }
-  @keyframes floatCard{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
+  @keyframes cardIn{ from{opacity:0; transform:translateY(16px) scale(0.96);} to{opacity:1; transform:translateY(0) scale(1);} }
 
   .phase{ display:none; position:relative; z-index:3; }
-  .phase.active{ display:block; animation:phaseIn 0.55s cubic-bezier(.2,.8,.2,1) both; }
+  .phase.active{ display:block; animation:phaseIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
   @keyframes phaseIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
 
+  /* Loader สไตล์โซนาร์พรีเมียม (Phase 1) */
   .loader{
-    position:relative;
-    width:clamp(84px, 22vw, 100px);
-    height:clamp(84px, 22vw, 100px);
-    margin:0 auto clamp(18px, 4vw, 24px);
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    position:relative; width:92px; height:92px; margin:0 auto 18px;
+    display:flex; align-items:center; justify-content:center;
   }
   .sonar{
     position:absolute; inset:0; border-radius:50%; border:1.5px solid var(--cyan); opacity:0;
@@ -219,263 +156,149 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     background:radial-gradient(circle at 30% 28%, rgba(139,92,246,0.95), transparent 55%),
                radial-gradient(circle at 72% 35%, rgba(34,211,238,0.9), transparent 55%),
                radial-gradient(circle at 50% 78%, rgba(236,72,153,0.85), transparent 55%);
-    filter:blur(11px) saturate(140%); opacity:0.65;
+    filter:blur(10px); opacity:0.65;
   }
-  .glass{
+  .glass-circle{
     position:absolute; inset:14%; border-radius:50%;
     background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.16), rgba(10,10,16,0.6) 60%);
     border:1px solid rgba(255,255,255,0.22); backdrop-filter:blur(6px);
   }
   .core{
-    position:absolute; top:50%; left:50%; width:20px; height:20px; margin:-10px 0 0 -10px;
+    position:absolute; top:50%; left:50%; width:18px; height:18px; margin:-9px 0 0 -9px;
     clip-path:polygon(50% 0%, 90% 25%, 100% 70%, 50% 100%, 0% 70%, 10% 25%);
     background:linear-gradient(160deg, #ffffff 0%, #c9b8ff 22%, var(--violet) 55%, var(--cyan) 100%);
-    box-shadow:0 0 22px 7px rgba(139,92,246,0.85);
+    box-shadow:0 0 20px 6px rgba(139,92,246,0.8);
   }
 
+  .eyebrow{ font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--cyan); margin-bottom: 6px; }
   .title{
-    font-family:'Kanit',sans-serif; font-weight:600; font-size:clamp(18px, 4.5vw, 20px);
+    font-family:'Kanit',sans-serif; font-weight:600; font-size:1.15rem;
     background:linear-gradient(90deg, #c4b5fd, #67e8f9 55%, #f5a8d0);
     -webkit-background-clip:text; background-clip:text; color:transparent;
     margin-bottom:8px;
   }
-  .subtitle{
-    font-size:clamp(12px, 3.2vw, 13px); line-height:1.6; color:var(--text-lo); font-weight:300;
-    margin-bottom:16px;
-  }
+  .subtitle{ font-size:0.8rem; line-height:1.5; color:var(--text-lo); font-weight:300; margin-bottom:16px; }
   .status-line{
-    display:flex; align-items:center; justify-content:center; gap:10px;
-    width:100%; padding:12px 16px; border-radius:12px;
-    border:1px solid rgba(255,255,255,0.1);
-    background:linear-gradient(135deg, rgba(139,92,246,0.25), rgba(34,211,238,0.18));
-    color:var(--text-hi); font-size:13px; font-weight:500;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; padding:10px 14px; border-radius:12px;
+    border:1px solid rgba(255,255,255,0.08);
+    background:linear-gradient(135deg, rgba(139,92,246,0.2), rgba(34,211,238,0.15));
+    color:var(--text-hi); font-size:0.8rem; font-weight:500;
   }
   .status-line .dots span{
-    display:inline-block; width:5px; height:5px; margin-left:3px; border-radius:50%; background:var(--cyan);
+    display:inline-block; width:4px; height:4px; margin-left:2px; border-radius:50%; background:var(--cyan);
     animation:bounce 1.2s ease-in-out infinite;
   }
   .status-line .dots span:nth-child(2){animation-delay:0.15s;}
   .status-line .dots span:nth-child(3){animation-delay:0.3s;}
   @keyframes bounce{ 0%,80%,100%{transform:translateY(0); opacity:0.5;} 40%{transform:translateY(-4px); opacity:1;} }
 
+  /* ผลลัพธ์ (Phase 2) */
   .result-title {
     font-family: 'Kanit', sans-serif;
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: var(--green);
+    font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;
+    background: linear-gradient(90deg, #57F287, #22d3ee);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }
 
-  /* Discord Profile Card สีแท้ตามภาพล่าสุด */
   .discord-profile-card {
-    background: #111214;
-    border-radius: 12px;
-    overflow: hidden;
-    text-align: left;
-    margin-bottom: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    background: #0b0c0e; border-radius: 16px; overflow: hidden;
+    text-align: left; margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   }
 
   .discord-banner-area {
-    width: 100%;
-    height: 64px;
-    background: #000000;
-    position: relative;
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-start;
-    padding: 8px;
+    width: 100%; height: 72px;
+    background: linear-gradient(135deg, #111214, #000000);
+    position: relative; display: flex; justify-content: flex-end; align-items: flex-start;
+    padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.04);
   }
 
   .status-bubble {
-    position: absolute;
-    right: 10px;
-    bottom: -22px;
-    background: #111214;
-    border: 1px solid rgba(255,255,255,0.08);
-    padding: 5px 10px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.72rem;
-    color: #dbdee1;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    white-space: nowrap;
+    background: rgba(17, 18, 20, 0.85);
+    border: 1px solid rgba(35, 165, 90, 0.3);
+    padding: 5px 12px; border-radius: 20px;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.75rem; font-weight: 500; color: #e2e8f0;
+    backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0,0,0,0.4);
   }
-  .status-bubble svg {
-    width: 12px;
-    height: 12px;
-    fill: #23a55a;
-    flex-shrink: 0;
-  }
+  .status-bubble svg { width: 13px; height: 13px; fill: #23a55a; }
 
-  .discord-content-area {
-    padding: 0 12px 12px 12px;
-    position: relative;
-  }
+  .discord-content-area { padding: 0 16px 16px 16px; position: relative; }
 
-  .discord-avatar-container {
-    display: flex;
-    align-items: flex-end;
-    margin-top: -30px;
-    margin-bottom: 8px;
-  }
-
+  .discord-avatar-container { display: flex; align-items: flex-end; margin-top: -34px; margin-bottom: 10px; }
   .discord-avatar-wrapper {
-    position: relative;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: #111214;
-    padding: 3px;
+    position: relative; width: 62px; height: 62px; border-radius: 50%;
+    background: #0b0c0e; padding: 3px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   }
-
-  .discord-user-avatar {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
+  .discord-user-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
   .avatar-status-dot {
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 14px;
-    height: 14px;
-    background: #23a55a;
-    border: 3px solid #111214;
-    border-radius: 50%;
+    position: absolute; bottom: 3px; right: 3px; width: 14px; height: 14px;
+    background: #23a55a; border: 3px solid #0b0c0e; border-radius: 50%;
   }
 
   .display-name-main {
-    font-family: 'Kanit', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #ffffff;
-    line-height: 1.2;
-    margin-bottom: 2px;
+    font-family: 'Kanit', sans-serif; font-size: 1.15rem; font-weight: 700;
+    color: #ffffff; line-height: 1.2; margin-bottom: 3px;
   }
-
   .user-handle-sub {
-    font-size: 0.74rem;
-    color: #949ba4;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-wrap: wrap;
+    font-size: 0.78rem; color: var(--text-lo); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px; font-weight: 400;
   }
 
-  .divider-line {
-    height: 1px;
-    background: rgba(255, 255, 255, 0.06);
-    margin: 8px 0;
-  }
+  .divider-line { height: 1px; background: rgba(255, 255, 255, 0.07); margin: 10px 0; }
 
-  .profile-info-block {
-    font-size: 0.74rem;
-    color: #949ba4;
-    margin-bottom: 8px;
-  }
+  .profile-info-block { font-size: 0.76rem; color: var(--text-lo); margin-bottom: 10px; }
   .profile-info-block .label {
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 0.65rem;
-    letter-spacing: 0.5px;
-    margin-bottom: 2px;
-    color: #949ba4;
-  }
-  .profile-info-block .value {
-    color: #dbdee1;
-    font-weight: 500;
+    font-weight: 600; text-transform: uppercase; font-size: 0.65rem;
+    letter-spacing: 0.8px; margin-bottom: 4px; color: #80848e;
   }
 
-  /* ส่วนแสดงบทบาท (Roles) */
-  .roles-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-top: 4px;
-  }
+  .roles-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
   .role-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: #1e1f22;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 0.74rem;
-    color: #dbdee1;
-    border: 1px solid rgba(255,255,255,0.04);
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #18191c; padding: 4px 10px; border-radius: 8px;
+    font-size: 0.76rem; font-weight: 500; color: #f2f3f5;
+    border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
-  .role-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--role-color, #57F287);
-  }
-  .role-remove-icon {
-    width: 12px;
-    height: 12px;
-    fill: #949ba4;
-    cursor: pointer;
-    margin-left: 2px;
-  }
-  .role-remove-icon:hover {
-    fill: #f2f3f5;
-  }
+  .role-dot { width: 8px; height: 8px; border-radius: 50%; background: #57F287; box-shadow: 0 0 8px #57F287; }
+  .role-remove-icon { width: 12px; height: 12px; fill: #949ba4; cursor: pointer; transition: fill 0.2s; }
+  .role-remove-icon:hover { fill: #ffffff; }
 
-  .result-message {
-    margin-bottom: 12px;
-    color: var(--text-lo);
-    font-size: 0.82rem;
-  }
+  .result-message { margin-bottom: 16px; color: #b5bac1; font-size: 0.86rem; font-weight: 400; }
 
   .discord-btn-primary {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    background: var(--green);
-    color: #fff;
-    font-weight: 600;
-    font-size: 0.92rem;
-    padding: 11px;
-    border-radius: 8px;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; background: linear-gradient(135deg, #23a55a, #1f934e);
+    color: #fff; font-weight: 600; font-size: 0.95rem; padding: 12px;
+    border-radius: 12px; text-decoration: none; border: none; cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     font-family: 'Sarabun', 'Kanit', sans-serif;
-    box-shadow: 0 4px 14px rgba(35, 165, 90, 0.35);
+    box-shadow: 0 6px 20px rgba(35, 165, 90, 0.4);
   }
-  .discord-btn-primary:hover { background: #1f934e; transform: translateY(-1px); }
+  .discord-btn-primary:hover {
+    background: linear-gradient(135deg, #26b763, #22a55a);
+    transform: translateY(-2px); box-shadow: 0 8px 25px rgba(35, 165, 90, 0.6);
+  }
   .discord-btn-primary:active { transform: scale(0.98); }
 
-  @keyframes confettiFall{ 0%{transform:translateY(-20px) rotate(0deg); opacity:1;} 100%{transform:translateY(220px) rotate(360deg); opacity:0;} }
+  @keyframes confettiFall{ 0%{transform:translateY(-20px) rotate(0deg); opacity:1;} 100%{transform:translateY(240px) rotate(360deg); opacity:0;} }
   .confetti{ position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:0; }
-  .confetti span{ position:absolute; top:-10px; width:6px; height:10px; border-radius:1px; opacity:0.9; animation:confettiFall 2.6s ease-in forwards; }
+  .confetti span{ position:absolute; top:-10px; width:7px; height:11px; border-radius:2px; opacity:0.95; animation:confettiFall 2.6s ease-in forwards; }
   #phase-result > *:not(.confetti){ position:relative; z-index:1; }
 </style>
 </head>
 <body class="phase-checking">
 
-  <div class="blob blob-1"></div>
-  <div class="blob blob-2"></div>
-  <div class="blob blob-3"></div>
-  <div class="stars"></div>
-  <div class="particles" id="particles"></div>
+  <div class="ambient-bg"></div>
   <div class="noise"></div>
 
   <div class="card-wrap">
     <div class="card-glow"></div>
     <div class="card">
 
-      <!-- Phase 1: หน้าจอโหลดอัตโนมัติ -->
+      <!-- Phase 1: หน้าจอตรวจสอบ/โหลดอัตโนมัติ -->
       <div class="phase active" id="phase-checking">
         <div class="eyebrow">ระบบยืนยันตัวตน</div>
         <div class="loader">
@@ -483,30 +306,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <div class="sonar s2"></div>
           <div class="sonar s3"></div>
           <div class="halo"></div>
-          <div class="glass"></div>
+          <div class="glass-circle"></div>
           <div class="core"></div>
         </div>
-        <div class="title">{{ title | default('กำลังตรวจสอบ') }}</div>
+        <div class="title">{{ title | default('กำลังตรวจสอบข้อมูล') }}</div>
         <div class="subtitle">
-          {{ subtitle | default('ระบบกำลังตรวจสอบสิทธิ์ของคุณ<br>โปรดรอสักครู่ ระบบใกล้จะเสร็จสมบูรณ์แล้ว') | safe }}
+          {{ subtitle | default('ระบบกำลังตรวจสอบสิทธิ์และเพิ่มยศให้คุณ<br>โปรดรอสักครู่ ระบบกำลังประมวลผล') | safe }}
         </div>
         <div class="status-line">
-          {{ status_text | default('กำลังตรวจสอบข้อมูล') }}
+          {{ status_text | default('กำลังเชื่อมต่อฐานข้อมูล Discord') }}
           <span class="dots"><span></span><span></span><span></span></span>
         </div>
       </div>
 
-      <!-- Phase 2: หน้าจอผลลัพธ์ -->
-      <div class="phase state-{{ result_state | default('success') }}" id="phase-result">
-        {% if (result_state | default('success')) == 'success' %}
+      <!-- Phase 2: หน้าจอผลลัพธ์สำเร็จ -->
+      <div class="phase" id="phase-result">
         <div class="confetti" id="confetti"></div>
-        {% endif %}
 
         <h1 class="result-title">{{ result_title | default('ให้ยศสำเร็จ') }}</h1>
 
         {% if user %}
         <div class="discord-profile-card">
-          <!-- แบนเนอร์สีดำพร้อมป้าย ยืนยันตัวตนแล้ว -->
           <div class="discord-banner-area">
             <div class="status-bubble">
               <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
@@ -531,20 +351,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             <div class="divider-line"></div>
 
-            <!-- ส่วนแสดงบทบาท (Roles) -->
             <div class="profile-info-block">
               <div class="label">บทบาท</div>
               <div class="roles-container">
                 <div class="role-tag">
-                  <span class="role-dot" style="--role-color: #57F287;"></span>
+                  <span class="role-dot"></span>
                   <span>User</span>
                   <svg class="role-remove-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                 </div>
               </div>
             </div>
 
-            <div class="profile-info-block" style="margin-bottom: 0;">
-              <div class="label" style="display:flex; align-items:center; gap:4px;">
+            <div class="profile-info-block" style="margin-bottom: 0; margin-top: 10px;">
+              <div class="label" style="display:flex; align-items:center; gap:5px; color: #b5bac1; font-size: 0.72rem; text-transform: none; font-weight: 500;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
                 ยืนยันตัวตนเมื่อ วันนี้
               </div>
@@ -556,7 +375,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         <p class="result-message">{{ result_message | default('ระบบได้เพิ่มยศให้คุณเรียบร้อยแล้ว') }}</p>
 
-        <a href="{{ button_url | default('https://discord.com/app') }}" class="discord-btn-primary" {% if (result_state | default('success')) == 'success' %}onclick="openDiscord(event)"{% endif %}>
+        <a href="{{ button_url | default('https://discord.com/app') }}" class="discord-btn-primary" onclick="openDiscord(event)">
           {{ button_text | default('กลับไปที่ Discord') }}
         </a>
       </div>
@@ -567,11 +386,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <script>
     history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', function (event) {
-      if ("{{ result_state | default('success') }}" === 'success') {
-        openDiscord(null);
-      } else {
-        history.back();
-      }
+      openDiscord(null);
     });
 
     function openDiscord(event) {
@@ -589,7 +404,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const colors = ['#57F287', '#8b5cf6', '#22d3ee', '#ffffff'];
       const container = document.getElementById('confetti');
       if (!container) return;
-      for (let i = 0; i < 26; i++) {
+      for (let i = 0; i < 28; i++) {
         const piece = document.createElement('span');
         piece.style.left = Math.random() * 100 + '%';
         piece.style.background = colors[Math.floor(Math.random() * colors.length)];
@@ -605,7 +420,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       document.body.classList.remove('phase-checking');
       document.body.classList.add('phase-success');
       spawnConfetti();
-    }, 4000);
+    }, 3500);
   </script>
 
 </body>
