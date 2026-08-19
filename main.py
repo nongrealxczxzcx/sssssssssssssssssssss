@@ -43,7 +43,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>{{ title | default('กำลังตรวจสอบ') }}</title>
+<title>{{ title | default('กำลังตรวจสอบและรับยศ') }}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -59,6 +59,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     --text-lo:#9695ac;
     --card:rgba(255,255,255,0.05);
     --card-border:rgba(255,255,255,0.1);
+    --discord-bg: #111214;
+    --discord-modal: #2b2d31;
+    --discord-input: #1e1f22;
+    --discord-blurple: #5865f2;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{
@@ -77,8 +81,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     min-height:100dvh;
     padding:calc(20px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
   }
- 
-  /* ---------- background atmosphere ---------- */
+
   .noise{
     position:fixed;inset:0;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
@@ -118,11 +121,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }
   body.phase-success .blob-3{ background:radial-gradient(circle at 50% 50%, var(--green), transparent 70%); }
   body.phase-error .blob-3{ background:radial-gradient(circle at 50% 50%, var(--red), transparent 70%); }
- 
+
   @keyframes drift1{ 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(4vw,3vh) scale(1.12);} }
   @keyframes drift2{ 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-3vw,-2vh) scale(1.08);} }
   @keyframes drift3{ 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(2vw,-3vh) scale(1.15);} }
- 
+
   .stars{
     position:fixed;inset:0;
     background-image:
@@ -134,7 +137,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       radial-gradient(1px 1px at 10% 60%, rgba(255,255,255,0.3), transparent);
     opacity:0.6;
   }
- 
+
   .particles{ position:fixed; inset:0; pointer-events:none; z-index:2; }
   .particle{
     position:absolute;
@@ -154,7 +157,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     92%{ opacity:0.4; }
     100%{ transform:translateY(-100vh) translateX(calc(var(--px,10px) * -1)); opacity:0; }
   }
- 
+
   .card-wrap{ position:relative; z-index:10; width:100%; max-width:380px; }
   .card-glow{
     position:absolute; inset:-3px; border-radius:23px;
@@ -172,11 +175,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   }
   body.phase-success .card-glow{ background:linear-gradient(120deg, var(--green), var(--cyan), var(--green)); background-size:300% 300%; opacity:0.45; }
   body.phase-error .card-glow{ background:linear-gradient(120deg, var(--red), var(--magenta), var(--red)); background-size:300% 300%; opacity:0.45; }
- 
+
   .card{
     position:relative;
     width:100%;
-    padding:clamp(34px, 8vw, 46px) clamp(24px, 7vw, 36px) clamp(28px, 6vw, 36px);
+    padding:clamp(30px, 7vw, 40px) clamp(20px, 6vw, 30px) clamp(24px, 5vw, 30px);
     background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
     border:1px solid var(--card-border);
     border-radius:20px;
@@ -189,14 +192,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     animation:cardIn 0.7s cubic-bezier(.2,.8,.2,1) both, floatCard 6.5s ease-in-out 0.7s infinite;
     overflow:hidden;
   }
-  /* the result phase (Discord profile card) needs edge-to-edge banner,
-     so it gets its own padding and loses text-align:center */
-  .card:has(#phase-result.active){
-    padding:clamp(34px, 8vw, 46px) 0 0;
-  }
   @keyframes cardIn{ from{opacity:0; transform:translateY(14px) scale(0.97);} to{opacity:1; transform:translateY(0) scale(1);} }
   @keyframes floatCard{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
- 
+
   .card::before{
     content:"";
     position:absolute;
@@ -209,7 +207,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     z-index:2;
   }
   @keyframes cardSheen{ 0%{left:-70%;} 35%{left:130%;} 100%{left:130%;} }
- 
+
   .eyebrow{
     display:inline-flex; align-items:center; gap:6px;
     font-size:clamp(10px, 2.6vw, 11px);
@@ -217,7 +215,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     letter-spacing:1.6px;
     text-transform:uppercase;
     color:var(--text-lo);
-    margin-bottom:clamp(18px, 5vw, 22px);
+    margin-bottom:clamp(16px, 4vw, 20px);
     opacity:0.85;
   }
   .eyebrow::before, .eyebrow::after{
@@ -226,20 +224,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     background:linear-gradient(90deg, transparent, var(--text-lo));
   }
   .eyebrow::after{ background:linear-gradient(90deg, var(--text-lo), transparent); }
- 
+
   .phase{ display:none; position:relative; z-index:3; }
   .phase.active{ display:block; animation:phaseIn 0.55s cubic-bezier(.2,.8,.2,1) both; }
   @keyframes phaseIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
-  #phase-checking, #phase-result-basic{ padding:0 clamp(0px,0vw,0px); }
-  #phase-checking{ padding:0 clamp(0px, 0vw, 0px) 0; }
- 
-  /* ---------- checking phase ---------- */
-  .checking-inner{ padding:0 clamp(24px, 7vw, 36px) clamp(28px, 6vw, 36px); text-align:center; }
+
   .loader{
     position:relative;
     width:clamp(84px, 22vw, 100px);
     height:clamp(84px, 22vw, 100px);
-    margin:0 auto clamp(24px, 6vw, 30px);
+    margin:0 auto clamp(20px, 5vw, 26px);
     display:flex;
     align-items:center;
     justify-content:center;
@@ -259,7 +253,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     12%{ opacity:0.9; }
     100%{ transform:scale(1.15); opacity:0; }
   }
- 
+
   .halo{
     position:absolute;
     inset:6%;
@@ -276,7 +270,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     0%,100%{ filter:blur(11px) saturate(140%) hue-rotate(0deg); opacity:0.55; transform:scale(1); }
     50%{ filter:blur(14px) saturate(170%) hue-rotate(30deg); opacity:0.8; transform:scale(1.06); }
   }
- 
+
   .glass{
     position:absolute;
     inset:14%;
@@ -289,7 +283,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       inset 0 -6px 14px rgba(0,0,0,0.35),
       0 0 26px rgba(139,92,246,0.4);
   }
- 
+
   .spark{
     position:absolute;
     width:3px; height:3px;
@@ -307,7 +301,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     0%,100%{ transform:scale(0.4); opacity:0; }
     50%{ transform:scale(1.4); opacity:1; }
   }
- 
+
   .core{
     position:absolute; top:50%; left:50%;
     width:20px; height:20px; margin:-10px 0 0 -10px;
@@ -317,35 +311,35 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     animation:breathe 2.4s ease-in-out infinite;
   }
   @keyframes breathe{ 0%,100%{transform:scale(1); filter:brightness(1);} 50%{transform:scale(1.28); filter:brightness(1.25);} }
- 
+
   .title{
     font-family:'Kanit',sans-serif;
     font-weight:600;
-    font-size:clamp(19px, 4.8vw, 21px);
+    font-size:clamp(18px, 4.5vw, 20px);
     letter-spacing:0.1px;
     background:linear-gradient(90deg, #c4b5fd, #67e8f9 55%, #f5a8d0);
     -webkit-background-clip:text; background-clip:text; color:transparent;
     background-size:200% 100%;
     animation:shine 4s linear infinite;
-    margin-bottom:10px;
+    margin-bottom:8px;
   }
   @keyframes shine{ 0%{background-position:0% 50%;} 100%{background-position:200% 50%;} }
   .subtitle{
-    font-size:clamp(12.5px, 3.4vw, 13.5px);
-    line-height:1.7;
+    font-size:clamp(12px, 3.2vw, 13px);
+    line-height:1.6;
     color:var(--text-lo);
     font-weight:300;
-    margin-bottom:clamp(22px, 5.5vw, 28px);
+    margin-bottom:clamp(18px, 4.5vw, 24px);
     padding:0 4px;
   }
- 
+
   .status-line{
     display:flex; align-items:center; justify-content:center; gap:10px;
-    width:100%; padding:13px 16px; border-radius:12px;
+    width:100%; padding:12px 16px; border-radius:12px;
     border:1px solid rgba(255,255,255,0.1);
     background:linear-gradient(135deg, rgba(139,92,246,0.25), rgba(34,211,238,0.18));
     color:var(--text-hi);
-    font-size:clamp(13px, 3.4vw, 14px);
+    font-size:clamp(12.5px, 3.2vw, 13.5px);
     font-weight:500; letter-spacing:0.2px;
     overflow:hidden; position:relative;
   }
@@ -364,10 +358,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     animation:sweep 2.6s ease-in-out infinite;
   }
   @keyframes sweep{ 0%{left:-60%;} 60%{left:130%;} 100%{left:130%;} }
- 
+
   .step-dots{
     display:flex; justify-content:center; gap:6px;
-    margin-top:20px;
+    margin-top:16px;
   }
   .step-dots span{
     width:5px; height:5px; border-radius:50%;
@@ -377,370 +371,254 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     background:var(--cyan);
     box-shadow:0 0 6px 1px var(--cyan);
   }
- 
+
   .hint{
-    margin-top:16px;
-    font-size:clamp(10.5px, 2.9vw, 11.5px);
+    margin-top:14px;
+    font-size:clamp(10px, 2.7vw, 11px);
     color:rgba(150,149,172,0.7);
     font-weight:300;
   }
- 
-  /* ---------- simple result phase (processing / error / no-user) ---------- */
-  .result-basic{ padding:0 clamp(24px, 7vw, 36px) clamp(28px, 6vw, 36px); text-align:center; }
- 
-  @keyframes successPop{ 0%{transform:scale(0.7); opacity:0;} 100%{transform:scale(1); opacity:1;} }
-  @keyframes shake{ 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-5px);} 40%,80%{transform:translateX(5px);} }
-  @keyframes badgeIn{ 0%{transform:translateY(10px) scale(0.9); opacity:0;} 100%{transform:translateY(0) scale(1); opacity:1;} }
-  @keyframes shimmer{ 0%{background-position:-200% 0;} 100%{background-position:200% 0;} }
+
   @keyframes confettiFall{ 0%{transform:translateY(-20px) rotate(0deg); opacity:1;} 100%{transform:translateY(220px) rotate(360deg); opacity:0;} }
-  @keyframes drawCircle{ from{ stroke-dashoffset:64; } to{ stroke-dashoffset:0; } }
-  @keyframes drawCheck{ from{ stroke-dashoffset:24; } to{ stroke-dashoffset:0; } }
- 
+
   .confetti{ position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:0; }
   .confetti span{ position:absolute; top:-10px; width:6px; height:10px; border-radius:1px; opacity:0.9; animation:confettiFall 2.6s ease-in forwards; }
-  #phase-result > *{ position:relative; z-index:1; }
- 
-  .result-icon-wrap{ position:relative; width:clamp(80px, 20vw, 92px); height:clamp(80px, 20vw, 92px); margin:0 auto clamp(20px, 5vw, 24px); }
-  .result-ring{
-    position:absolute; inset:0; border-radius:50%;
-    border:1px solid rgba(255,255,255,0.08);
+  #phase-result > *:not(.confetti){ position:relative; z-index:1; }
+
+  /* Discord Profile Box Theme */
+  .discord-profile-preview {
+    background: var(--discord-modal);
+    border-radius: 12px;
+    overflow: hidden;
+    text-align: left;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   }
-  .result-ring::before{
-    content:""; position:absolute; inset:-6px; border-radius:50%;
-    border:1px solid currentColor; opacity:0.25;
+  .discord-banner {
+    width: 100%;
+    height: 65px;
+    background: #35363c;
+    background-size: cover;
+    background-position: center;
   }
-  .result-icon{
-    position:absolute; inset:8px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
+  .discord-body-box {
+    padding: 0 12px 12px 12px;
+    position: relative;
   }
-  .result-icon svg{ width:56%; height:56%; overflow:visible; }
-  .draw-circle{ stroke-dasharray:64; stroke-dashoffset:64; animation:drawCircle 0.6s ease-out forwards; }
-  .draw-check{ stroke-dasharray:24; stroke-dashoffset:24; animation:drawCheck 0.45s 0.5s ease-out forwards; }
-  .result-icon .spinner{
-    width:42%; height:42%; border-radius:50%;
-    background:radial-gradient(circle, #fff, var(--violet) 70%);
-    box-shadow:0 0 16px 4px rgba(139,92,246,0.7);
-    animation:breathe 1.1s ease-in-out infinite;
+  .discord-avatar-row {
+    display: flex;
+    align-items: flex-end;
+    margin-top: -26px;
+    margin-bottom: 6px;
   }
-  #phase-result.state-success .result-ring{ color:var(--green); }
-  #phase-result.state-success .result-icon{
-    background:radial-gradient(circle, rgba(87,242,135,0.22), rgba(87,242,135,0.06));
-    box-shadow:0 0 26px rgba(87,242,135,0.3);
-    animation:successPop 0.55s cubic-bezier(.2,1.4,.4,1);
+  .discord-avatar-wrap {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--discord-modal);
+    padding: 3px;
   }
-  #phase-result.state-success .result-icon svg{ color:var(--green); }
-  #phase-result.state-error .result-ring{ color:var(--red); }
-  #phase-result.state-error .result-icon{
-    background:radial-gradient(circle, rgba(237,66,69,0.22), rgba(237,66,69,0.06));
-    box-shadow:0 0 26px rgba(237,66,69,0.25);
-    animation:shake 0.5s ease-out;
+  .discord-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
   }
-  #phase-result.state-error .result-icon svg{ color:var(--red); }
-  #phase-result.state-processing .result-ring{ color:var(--violet); }
-  #phase-result.state-processing .result-icon{
-    background:radial-gradient(circle, rgba(139,92,246,0.2), rgba(139,92,246,0.05));
+  .discord-status-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 11px;
+    height: 11px;
+    background: var(--green);
+    border: 2px solid var(--discord-modal);
+    border-radius: 50%;
   }
- 
-  .result-title{
-    font-family:'Kanit',sans-serif;
-    font-size:clamp(20px, 5.2vw, 23px);
-    font-weight:600;
-    margin-bottom:12px;
-    letter-spacing:0.1px;
+  .discord-user-info-box {
+    background: var(--discord-bg);
+    border-radius: 8px;
+    padding: 10px;
   }
-  #phase-result.state-success .result-title{ color:var(--green); }
-  #phase-result.state-error .result-title{ color:var(--red); }
-  #phase-result.state-processing .result-title{ color:var(--violet); }
- 
-  .result-message{
-    font-size:clamp(13px, 3.6vw, 14.5px);
-    color:var(--text-lo);
-    line-height:1.7;
-    margin-bottom:clamp(20px, 5.5vw, 24px);
-    font-weight:300;
+  .display-name {
+    font-family: 'Kanit', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f2f3f5;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
- 
-  .result-btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:9px;
-    padding:15px 26px;
-    font-size:clamp(14px, 3.8vw, 15px);
-    font-weight:600; border:none;
-    border-radius:12px; cursor:pointer; transition:all 0.25s ease;
-    text-decoration:none; width:100%; font-family:'Sarabun',sans-serif;
+  .username-sub {
+    font-size: 0.78rem;
+    color: #949ba4;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .result-btn svg{ width:16px; height:16px; fill:currentColor; }
-  .btn-success{
-    background:linear-gradient(135deg, var(--green), #3ed875);
-    color:#0a1f10; box-shadow:0 6px 22px rgba(87,242,135,0.4);
+  .divider {
+    height: 1px;
+    background: #3f4147;
+    margin: 8px 0;
   }
-  .btn-retry{
-    background:rgba(255,255,255,0.08); color:var(--text-hi);
-    border:1px solid rgba(255,255,255,0.16);
+  .section-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #949ba4;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
   }
-  .result-btn:active{ transform:scale(0.98); }
-  @media (hover:hover){
-    .result-btn:hover{ transform:translateY(-2px); }
-    .btn-success:hover{ box-shadow:0 10px 30px rgba(87,242,135,0.5); }
-    .btn-retry:hover{ background:rgba(255,255,255,0.14); }
+  .roles-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
   }
- 
-  /* ---------- Discord-style profile card (success + user) ---------- */
-  .dc-card{
-    text-align:left;
-    animation:successCardIn 0.6s cubic-bezier(.2,1.1,.3,1) both;
+  .role-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--discord-input);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.74rem;
+    color: #dbdee1;
+    border: 1px solid rgba(255,255,255,0.04);
   }
-  @keyframes successCardIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
- 
-  .dc-banner{
-    position:relative;
-    height:96px;
-    background:
-      radial-gradient(circle at 15% 20%, rgba(255,255,255,0.10), transparent 45%),
-      linear-gradient(135deg, var(--violet), var(--magenta) 55%, var(--cyan));
-    overflow:hidden;
+  .role-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: {{ role_color | default('#57F287') }};
   }
-  .dc-banner::after{
-    content:"";
-    position:absolute; inset:0;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E");
-    mix-blend-mode:overlay;
+
+  /* Discord Blurple Primary Button */
+  .discord-btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: var(--discord-blurple);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.92rem;
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    font-family: 'Sarabun', sans-serif;
+    box-shadow: 0 4px 14px rgba(88, 101, 242, 0.35);
   }
-  .dc-verified-chip{
-    position:absolute; top:10px; right:10px;
-    display:flex; align-items:center; gap:5px;
-    background:rgba(7,7,12,0.55);
-    backdrop-filter:blur(6px);
-    border:1px solid rgba(255,255,255,0.18);
-    border-radius:999px;
-    padding:5px 11px 5px 8px;
-    font-size:10.5px; font-weight:500; color:var(--text-hi);
-  }
-  .dc-verified-chip svg{ width:12px; height:12px; color:var(--green); flex-shrink:0; }
- 
-  .dc-avatar-row{
-    display:flex; align-items:flex-end; justify-content:space-between;
-    padding:0 clamp(20px, 6vw, 26px);
-    margin-top:-38px;
-  }
-  .dc-avatar-wrap{ position:relative; width:76px; height:76px; }
-  .dc-avatar{
-    width:76px; height:76px; border-radius:50%;
-    border:5px solid #17141f;
-    object-fit:cover;
-    background:#17141f;
-    box-shadow:0 6px 18px rgba(0,0,0,0.4);
-  }
-  .dc-status-dot{
-    position:absolute; right:2px; bottom:2px;
-    width:20px; height:20px; border-radius:50%;
-    background:var(--green);
-    border:4px solid #17141f;
-    display:flex; align-items:center; justify-content:center;
-  }
-  .dc-status-dot svg{ width:9px; height:9px; color:#0a1f10; }
- 
-  .dc-body{ padding:12px clamp(20px, 6vw, 26px) clamp(20px, 6vw, 26px); }
- 
-  .dc-username{
-    font-family:'Kanit',sans-serif;
-    font-size:clamp(17px, 4.4vw, 19px);
-    font-weight:600;
-    color:var(--text-hi);
-    line-height:1.3;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
-  .dc-handle{
-    font-size:12.5px;
-    color:var(--text-lo);
-    margin-top:2px;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
- 
-  .dc-divider{
-    height:1px;
-    background:rgba(255,255,255,0.08);
-    margin:16px 0;
-  }
- 
-  .dc-meta{
-    display:flex; align-items:center; gap:7px;
-    font-size:12px;
-    color:var(--text-lo);
-  }
-  .dc-meta svg{ width:14px; height:14px; color:var(--cyan); flex-shrink:0; }
- 
-  .dc-section-title{
-    font-size:11px;
-    text-transform:uppercase;
-    letter-spacing:0.6px;
-    font-weight:600;
-    color:var(--text-lo);
-    margin:18px 0 10px;
-  }
- 
-  .dc-roles{
-    display:flex; flex-wrap:wrap; gap:8px;
-  }
-  .dc-role-pill{
-    display:inline-flex; align-items:center; gap:7px;
-    background:rgba(255,255,255,0.055);
-    border:1px solid rgba(255,255,255,0.12);
-    border-radius:8px;
-    padding:6px 12px 6px 9px;
-    font-size:12.5px;
-    font-weight:500;
-    color:var(--text-hi);
-    animation:badgeIn 0.45s ease-out both;
-  }
-  .dc-role-pill:nth-child(1){ animation-delay:0.05s; }
-  .dc-role-pill:nth-child(2){ animation-delay:0.12s; }
-  .dc-role-pill:nth-child(3){ animation-delay:0.19s; }
-  .dc-role-dot{
-    width:9px; height:9px; border-radius:50%;
-    flex-shrink:0;
-    box-shadow:0 0 6px 0 currentColor;
-  }
- 
-  .dc-cta{ padding:0 clamp(20px, 6vw, 26px) clamp(24px, 6vw, 30px); }
+  .discord-btn-primary:hover { background: #4752c4; transform: translateY(-1px); }
+  .discord-btn-primary:active { transform: scale(0.98); }
 </style>
 </head>
 <body class="phase-checking">
- 
+
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
   <div class="blob blob-3"></div>
   <div class="stars"></div>
- 
+
   <div class="particles" id="particles"></div>
   <div class="noise"></div>
- 
+
   <div class="card-wrap">
     <div class="card-glow"></div>
     <div class="card">
- 
-      <!-- phase 1: checking -->
+
+      <!-- Phase 1: หน้าจอโหลดอัตโนมัติ -->
       <div class="phase active" id="phase-checking">
-        <div class="checking-inner">
-          <div class="eyebrow">ระบบยืนยันตัวตน</div>
- 
-          <div class="loader">
-            <div class="sonar s1"></div>
-            <div class="sonar s2"></div>
-            <div class="sonar s3"></div>
-            <div class="halo"></div>
-            <div class="glass"></div>
-            <span class="spark sp1"></span>
-            <span class="spark sp2"></span>
-            <span class="spark sp3"></span>
-            <span class="spark sp4"></span>
-            <div class="core"></div>
-          </div>
- 
-          <div class="title">{{ title | default('กำลังตรวจสอบ') }}</div>
-          <div class="subtitle">
-            {{ subtitle | default('ระบบกำลังตรวจสอบสิทธิ์ของคุณ<br>โปรดรอสักครู่ ระบบใกล้จะเสร็จสมบูรณ์แล้ว') | safe }}
-          </div>
- 
-          <div class="status-line">
-            {{ status_text | default('กำลังตรวจสอบข้อมูล') }}
-            <span class="dots"><span></span><span></span><span></span></span>
-          </div>
- 
-          <div class="step-dots">
-            <span class="on"></span><span class="on"></span><span></span><span></span>
-          </div>
- 
-          <div class="hint">การดำเนินการนี้อาจใช้เวลาสักครู่ กรุณาอย่าปิดหน้าต่างนี้</div>
+        <div class="eyebrow">ระบบยืนยันตัวตน</div>
+
+        <div class="loader">
+          <div class="sonar s1"></div>
+          <div class="sonar s2"></div>
+          <div class="sonar s3"></div>
+          <div class="halo"></div>
+          <div class="glass"></div>
+          <span class="spark sp1"></span>
+          <span class="spark sp2"></span>
+          <span class="spark sp3"></span>
+          <span class="spark sp4"></span>
+          <div class="core"></div>
         </div>
+
+        <div class="title">{{ title | default('กำลังตรวจสอบ') }}</div>
+        <div class="subtitle">
+          {{ subtitle | default('ระบบกำลังตรวจสอบสิทธิ์ของคุณ<br>โปรดรอสักครู่ ระบบใกล้จะเสร็จสมบูรณ์แล้ว') | safe }}
+        </div>
+
+        <div class="status-line">
+          {{ status_text | default('กำลังตรวจสอบข้อมูล') }}
+          <span class="dots"><span></span><span></span><span></span></span>
+        </div>
+
+        <div class="step-dots">
+          <span class="on"></span><span class="on"></span><span></span><span></span>
+        </div>
+
+        <div class="hint">การดำเนินการนี้อาจใช้เวลาสักครู่ กรุณาอย่าปิดหน้าต่างนี้</div>
       </div>
- 
-      <!-- phase 2: result -->
+
+      <!-- Phase 2: หน้าจอผลลัพธ์พร้อมรับยศ -->
       <div class="phase state-{{ result_state | default('success') }}" id="phase-result">
         {% if (result_state | default('success')) == 'success' %}
         <div class="confetti" id="confetti"></div>
         {% endif %}
- 
-        {% if (result_state | default('success')) == 'success' and user %}
-        <!-- Discord-profile-card style result -->
-        <div class="dc-card">
-          <div class="dc-banner">
-            <div class="dc-verified-chip">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 1.6 2.85-.4 1.2 2.6 2.6 1.2-.4 2.85L22 12l-1.6 2.4.4 2.85-2.6 1.2-1.2 2.6-2.85-.4L12 22l-2.4-1.6-2.85.4-1.2-2.6-2.6-1.2.4-2.85L2 12l1.6-2.4-.4-2.85 2.6-1.2 1.2-2.6 2.85.4z"/><path d="M9.5 12.5l1.8 1.8 3.7-4.1" stroke="#17141f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-              ยืนยันตัวตนแล้ว
+
+        <h1 class="result-title" style="font-family:'Kanit',sans-serif; font-size:1.3rem; font-weight:600; margin-bottom:12px; color:var(--green);">
+          {{ result_title | default('เพิ่มยศสำเร็จ!') }}
+        </h1>
+
+        {% if user %}
+        <div class="discord-profile-preview">
+          <div class="discord-banner" style="background-image: url('{{ banner_url | default('') }}');"></div>
+          <div class="discord-body-box">
+            <div class="discord-avatar-row">
+              <div class="discord-avatar-wrap">
+                <img src="{{ user.avatar_url }}" alt="Avatar" class="discord-avatar">
+                <div class="discord-status-dot"></div>
+              </div>
             </div>
-          </div>
- 
-          <div class="dc-avatar-row">
-            <div class="dc-avatar-wrap">
-              <img src="{{ user.avatar_url }}" alt="Avatar" class="dc-avatar">
-              <div class="dc-status-dot">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="discord-user-info-box">
+              <!-- บรรทัดบน: แสดงชื่อหลัก (Global Name หรือ Username ถ้าไม่มี) -->
+              <div class="display-name">{{ user.global_name if user.global_name else user.username }}</div>
+              <!-- บรรทัดล่าง: แสดง @username จริงแบบ Discord -->
+              <div class="username-sub">@{{ user.username }}</div>
+              
+              <div class="divider"></div>
+
+              <div class="section-title">บทบาท</div>
+              <div class="roles-container">
+                {% if role_name %}
+                <div class="role-tag">
+                  <span class="role-dot" style="background: {{ role_color | default('#57F287') }};"></span>
+                  <span>{{ role_name }}</span>
+                </div>
+                {% endif %}
               </div>
             </div>
           </div>
- 
-          <div class="dc-body">
-            <div class="dc-username">{{ user.global_name or user.username }}</div>
-            <div class="dc-handle">@{{ user.username }} &nbsp;•&nbsp; ID: {{ user.id }}</div>
- 
-            <div class="dc-divider"></div>
- 
-            <div class="dc-meta">
-              <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-              ยืนยันตัวตนเมื่อ {{ verified_at | default('วันนี้') }}
-            </div>
- 
-            {% if roles %}
-            <div class="dc-section-title">บทบาทที่ได้รับ</div>
-            <div class="dc-roles">
-              {% for r in roles %}
-              <div class="dc-role-pill">
-                <span class="dc-role-dot" style="background:{{ r.color }};color:{{ r.color }};"></span>
-                {{ r.name }}
-              </div>
-              {% endfor %}
-            </div>
-            {% endif %}
-          </div>
- 
-          <div class="dc-cta">
-            <a href="{{ button_url | default('https://discord.com/app') }}" class="result-btn btn-success" onclick="openDiscord(event)">
-              {{ button_text | default('กลับไปที่ Discord') }}
-            </a>
-          </div>
-        </div>
- 
-        {% else %}
-        <!-- basic result (processing / error / no user data) -->
-        <div class="result-basic">
-          <div class="result-icon-wrap">
-            <div class="result-ring"></div>
-            <div class="result-icon">
-              {% if (result_state | default('success')) == 'success' %}
-                <svg viewBox="0 0 24 24" class="draw-icon" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6" class="draw-circle"/><path d="M7.5 12.5l3 3 6-6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="draw-check"/></svg>
-              {% elif (result_state | default('success')) == 'processing' %}
-                <div class="spinner"></div>
-              {% else %}
-                <svg viewBox="0 0 24 24" class="draw-icon" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6" class="draw-circle"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="draw-check"/></svg>
-              {% endif %}
-            </div>
-          </div>
- 
-          <h1 class="result-title">{{ result_title | default('ให้ยศสำเร็จ') }}</h1>
-          <p class="result-message">{{ result_message | default('คุณได้รับยศเรียบร้อยแล้ว ยินดีต้อนรับเข้าสู่เซิร์ฟเวอร์') }}</p>
- 
-          <a href="{{ button_url | default('https://discord.com/app') }}"
-             class="result-btn {{ 'btn-success' if (result_state | default('success')) == 'success' else 'btn-retry' }}"
-             {% if (result_state | default('success')) == 'success' %}onclick="openDiscord(event)"{% endif %}>
-            {{ button_text | default('กลับไปที่ Discord') }}
-          </a>
         </div>
         {% endif %}
+
+        <p class="result-message" style="margin-bottom:14px; color:var(--text-lo); font-size:0.85rem;">{{ result_message | default('คุณได้รับยศเข้าสู่บัญชีเรียบร้อยแล้ว ยินดีต้อนรับ!') }}</p>
+
+        <a href="{{ button_url | default('https://discord.com/app') }}" class="discord-btn-primary" {% if (result_state | default('success')) == 'success' %}onclick="openDiscord(event)"{% endif %}>
+          {{ button_text | default('กลับไปที่ Discord') }}
+        </a>
       </div>
- 
+
     </div>
   </div>
- 
+
   <script>
     history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', function (event) {
@@ -751,7 +629,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         history.back();
       }
     });
- 
+
     function openDiscord(event) {
       if (event) event.preventDefault();
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -764,7 +642,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         window.location.href = discordWebUrl;
       }
     }
- 
+
     function spawnConfetti() {
       const colors = ['#57F287', '#8b5cf6', '#22d3ee', '#ffffff'];
       const container = document.getElementById('confetti');
@@ -778,7 +656,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         container.appendChild(piece);
       }
     }
- 
+
     (function spawnParticles() {
       const wrap = document.getElementById('particles');
       const colors = ['#8b5cf6', '#22d3ee', '#ec4899'];
@@ -795,10 +673,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         wrap.appendChild(p);
       }
     })();
- 
-    const CHECK_DELAY_MS = {{ check_delay_ms | default(2500) }};
+
+    const CHECK_DELAY_MS = 4000;
     const RESULT_STATE = "{{ result_state | default('success') }}";
- 
+
     setTimeout(function () {
       const checking = document.getElementById('phase-checking');
       const result = document.getElementById('phase-result');
@@ -806,10 +684,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       result.classList.add('active');
       document.body.classList.remove('phase-checking');
       document.body.classList.add('phase-' + RESULT_STATE);
-      if (RESULT_STATE === 'success') spawnConfetti();
+      
+      if (RESULT_STATE === 'success') {
+        spawnConfetti();
+      }
     }, CHECK_DELAY_MS);
   </script>
- 
+
 </body>
 </html>
 """
