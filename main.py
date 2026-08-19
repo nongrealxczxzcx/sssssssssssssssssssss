@@ -9,7 +9,7 @@ import requests
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
-REDIRECT_URI = "http://localhost:5000/callback"
+REDIRECT_URI = "https://sssssssssssssssssssss-8gu3.onrender.com/callback"
 
 GUILD_ID = 1401504117511164076
 ROLE_ID = 1401506804671971398
