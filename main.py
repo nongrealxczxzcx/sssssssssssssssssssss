@@ -191,70 +191,54 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .status-line .dots span:nth-child(3){animation-delay:0.3s;}
   @keyframes bounce{ 0%,80%,100%{transform:translateY(0); opacity:0.5;} 40%{transform:translateY(-4px); opacity:1;} }
 
-  .discord-profile-card {
-    background: #0b0c0e; border-radius: 16px; overflow: hidden;
-    text-align: left; margin-bottom: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  /* Discord Profile Box แบบกระชับตามรูปตัวอย่าง */
+  .discord-profile-box {
+    background: #111214;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-align: left;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   }
-
-  .discord-banner-area {
-    width: 100%; height: 72px;
-    background: linear-gradient(135deg, #111214, #000000);
-    position: relative; display: flex; justify-content: flex-end; align-items: flex-start;
-    padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.04);
-  }
-
-  .status-bubble {
-    background: rgba(17, 18, 20, 0.85);
-    border: 1px solid rgba(35, 165, 90, 0.3);
-    padding: 5px 12px; border-radius: 20px;
-    display: flex; align-items: center; gap: 6px;
-    font-size: 0.75rem; font-weight: 500; color: #e2e8f0;
-    backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-  }
-  .status-bubble svg { width: 13px; height: 13px; fill: #23a55a; }
-
-  .discord-content-area { padding: 0 16px 16px 16px; position: relative; }
-
-  .discord-avatar-container { display: flex; align-items: flex-end; margin-top: -34px; margin-bottom: 10px; }
   .discord-avatar-wrapper {
-    position: relative; width: 62px; height: 62px; border-radius: 50%;
-    background: #0b0c0e; padding: 3px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    position: relative;
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
   }
-  .discord-user-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-  .avatar-status-dot {
-    position: absolute; bottom: 3px; right: 3px; width: 14px; height: 14px;
-    background: #23a55a; border: 3px solid #0b0c0e; border-radius: 50%;
+  .discord-user-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--green);
   }
-
+  .discord-user-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+  }
   .display-name-main {
-    font-family: 'Kanit', sans-serif; font-size: 1.15rem; font-weight: 700;
-    color: #ffffff; line-height: 1.2; margin-bottom: 3px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .user-handle-sub {
-    font-size: 0.78rem; color: var(--text-lo); margin-bottom: 12px;
-    display: flex; align-items: center; gap: 6px; font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--text-lo);
+    font-weight: 400;
+    margin-top: 2px;
   }
-
-  .divider-line { height: 1px; background: rgba(255, 255, 255, 0.07); margin: 10px 0; }
-
-  .profile-info-block { font-size: 0.76rem; color: var(--text-lo); margin-bottom: 10px; }
-  .profile-info-block .label {
-    font-weight: 600; text-transform: uppercase; font-size: 0.65rem;
-    letter-spacing: 0.8px; margin-bottom: 4px; color: #80848e;
-  }
-
-  .roles-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-  .role-tag {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: #18191c; padding: 4px 10px; border-radius: 8px;
-    font-size: 0.76rem; font-weight: 500; color: #f2f3f5;
-    border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  }
-  .role-dot { width: 8px; height: 8px; border-radius: 50%; background: #57F287; box-shadow: 0 0 8px #57F287; }
-  .role-remove-icon { width: 12px; height: 12px; fill: #949ba4; cursor: pointer; transition: fill 0.2s; }
-  .role-remove-icon:hover { fill: #ffffff; }
 
   .result-message { margin-bottom: 16px; color: #b5bac1; font-size: 0.86rem; font-weight: 400; }
 
@@ -321,49 +305,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       <div class="phase" id="phase-result">
         <div class="confetti" id="confetti"></div>
 
-        <div class="discord-profile-card">
-          <div class="discord-banner-area">
-            <div class="status-bubble">
-              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              <span>ยืนยันตัวตนแล้ว</span>
-            </div>
+        <!-- Discord Profile Box แบบกระชับ -->
+        <div class="discord-profile-box">
+          <div class="discord-avatar-wrapper">
+            <img src="{{ user.avatar_url if user and user.avatar_url else 'https://cdn.discordapp.com/embed/avatars/0.png' }}" alt="Avatar" class="discord-user-avatar">
           </div>
-
-          <div class="discord-content-area">
-            <div class="discord-avatar-container">
-              <div class="discord-avatar-wrapper">
-                <img src="{{ user.avatar_url if user and user.avatar_url else 'https://cdn.discordapp.com/embed/avatars/0.png' }}" alt="Avatar" class="discord-user-avatar">
-                <div class="avatar-status-dot"></div>
-              </div>
-            </div>
-
-            <div class="display-name-main">{{ user.username if user and user.username else 'jxycopstepmod' }}</div>
-            <div class="user-handle-sub">
-              <span>@{{ user.username if user and user.username else 'jxycopstepmod' }}</span>
-              <span>•</span>
-              <span>ID: {{ user.id if user and user.id else '1183718234806038563' }}</span>
-            </div>
-
-            <div class="divider-line"></div>
-
-            <div class="profile-info-block">
-              <div class="label">บทบาท</div>
-              <div class="roles-container">
-                <div class="role-tag">
-                  <span class="role-dot"></span>
-                  <span>User</span>
-                  <svg class="role-remove-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                </div>
-              </div>
-            </div>
-
-            <div class="profile-info-block" style="margin-bottom: 0; margin-top: 10px;">
-              <div class="label" style="display:flex; align-items:center; gap:5px; color: #b5bac1; font-size: 0.72rem; text-transform: none; font-weight: 500;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
-                ยืนยันตัวตนเมื่อ วันนี้
-              </div>
-            </div>
-
+          <div class="discord-user-info">
+            <div class="display-name-main">{{ user.global_name or user.username if user else 'ไม่เหมาะกับผู้ดีและสตรีหัวสูง' }}</div>
+            <div class="user-handle-sub">@{{ user.username if user else 'jxycopstepmod' }}</div>
           </div>
         </div>
 
@@ -380,46 +329,81 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <script>
+    const hasOauthCode = {{ 'true' if has_code else 'false' }};
+
     function openDiscord(event) {
-      event.preventDefault();
+        event.preventDefault();
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isAndroid = /Android/.test(navigator.userAgent);
 
-      const discordWebUrl = "{{ button_url | default('https://discord.com/app') }}";
-      const ua = navigator.userAgent;
-      const isAndroid = /Android/i.test(ua);
-      const isIOS = /iPhone|iPad|iPod/i.test(ua);
+        const discordAppUrl = 'discord://';
+        const discordWebUrl = "{{ button_url | default('https://discord.com/app') }}";
 
-      if (isAndroid) {
-        window.location.href =
-          'intent://#Intent;scheme=discord;package=com.discord;S.browser_fallback_url=' +
-          encodeURIComponent(discordWebUrl) + ';end';
-        return;
-      }
+        if (isMobile) {
+            const startedAt = Date.now();
+            window.location.href = discordAppUrl;
 
-      if (isIOS) {
-        let fellBack = false;
-        const fallbackTimer = setTimeout(function () {
-          if (!fellBack) {
-            fellBack = true;
-            window.location.href = discordWebUrl;
-          }
-        }, 1500);
+            setTimeout(function () {
+                if (Date.now() - startedAt < 2000) {
+                    if (isIOS) {
+                        window.location.href = 'https://apps.apple.com/app/discord/id985746746';
+                    } else if (isAndroid) {
+                        window.location.href = 'https://play.google.com/store/apps/details?id=com.discord';
+                    } else {
+                        window.location.href = discordWebUrl;
+                    }
+                }
+            }, 1500);
+        } else {
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = discordAppUrl;
+            document.body.appendChild(iframe);
 
-        document.addEventListener('visibilitychange', function onVis() {
-          if (document.hidden) {
-            fellBack = true;
-            clearTimeout(fallbackTimer);
-            document.removeEventListener('visibilitychange', onVis);
-          }
-        });
-
-        window.location.href = 'discord://';
-        return;
-      }
-
-      window.location.href = discordWebUrl;
+            setTimeout(function () {
+                if (document.body.contains(iframe)) {
+                    document.body.removeChild(iframe);
+                }
+                window.open(discordWebUrl, '_blank');
+            }, 500);
+        }
     }
 
     document.getElementById('discord-btn').addEventListener('click', openDiscord);
+
+    let oauthCallbackInFlight = false;
+    async function processOauthCallback() {
+        if (!hasOauthCode) { return; }
+        if (oauthCallbackInFlight) { return; }
+
+        oauthCallbackInFlight = true;
+
+        try {
+            const processUrl = new URL(window.location.href);
+            processUrl.searchParams.set('action', 'process');
+            const response = await fetch(processUrl.pathname + processUrl.search, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            
+            if (data.state === 'success') {
+                document.getElementById('phase-checking').classList.remove('active');
+                document.getElementById('phase-result').classList.add('active');
+                document.body.classList.remove('phase-checking');
+                document.body.classList.add('phase-success');
+                spawnConfetti();
+            }
+
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState(null, '', window.location.pathname);
+            }
+        } catch (error) {
+            // จัดการข้อผิดพลาดตามความเหมาะสม
+        } finally {
+            oauthCallbackInFlight = false;
+        }
+    }
 
     function spawnConfetti() {
       const colors = ['#57F287', '#8b5cf6', '#22d3ee', '#ffffff'];
@@ -436,12 +420,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     setTimeout(function () {
-      document.getElementById('phase-checking').classList.remove('active');
-      document.getElementById('phase-result').classList.add('active');
-      document.body.classList.remove('phase-checking');
-      document.body.classList.add('phase-success');
-      spawnConfetti();
+      if (!hasOauthCode) {
+        document.getElementById('phase-checking').classList.remove('active');
+        document.getElementById('phase-result').classList.add('active');
+        document.body.classList.remove('phase-checking');
+        document.body.classList.add('phase-success');
+        spawnConfetti();
+      }
     }, 3500);
+
+    if (hasOauthCode) { 
+        processOauthCallback(); 
+    }
   </script>
 
 </body>
