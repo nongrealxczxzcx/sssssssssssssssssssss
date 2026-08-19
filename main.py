@@ -6,6 +6,11 @@ from discord.ext import commands
 from flask import Flask, redirect, request, render_template_string
 import requests
 
+
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix="!", intents=intents)
+
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
@@ -687,7 +692,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 app = Flask(__name__)
 
-
 def get_role_name(guild_id, role_id):
     try:
         resp = requests.get(
@@ -702,7 +706,6 @@ def get_role_name(guild_id, role_id):
         print("ดึงชื่อยศไม่สำเร็จ:", e)
     return None
 
-
 @app.route("/")
 def home():
     discord_login_url = (
@@ -712,44 +715,18 @@ def home():
     return render_template_string(
         HTML_TEMPLATE,
         title="ยืนยันตัวตน",
-        subtitle="กำลังนำคุณไปหน้ายืนยันตัวตนผ่าน Discord<br>โปรดรอสักครู่",
+        subtitle="กำลังนำคุณไปหน้ายืนยันตัวตนผ่าน Discord",
         result_state="processing",
-        result_title="เตรียมยืนยันตัวตน",
-        result_message="กรุณากดยืนยันตัวตนผ่านบัญชี Discord ของคุณ เพื่อรับสิทธิ์เข้าถึงห้องต่างๆ ภายในเซิร์ฟเวอร์",
         button_url=discord_login_url,
         button_text="🚀 เข้าสู่ระบบผ่าน Discord",
         user=None,
     )
 
-
 @app.route("/callback", strict_slashes=False)
 def callback():
     code = request.args.get("code")
-    error = request.args.get("error")
-
-    if error:
-        return render_template_string(
-            HTML_TEMPLATE,
-            title="เกิดข้อผิดพลาด",
-            result_state="error",
-            result_title="เกิดข้อผิดพลาด",
-            result_message=f"Discord ปฏิเสธการเข้าสู่ระบบ: {error}",
-            button_url="/",
-            button_text="กลับไปหน้าหลัก",
-            user=None,
-        )
-
     if not code:
-        return render_template_string(
-            HTML_TEMPLATE,
-            title="เกิดข้อผิดพลาด",
-            result_state="error",
-            result_title="เกิดข้อผิดพลาด",
-            result_message="ไม่พบรหัสยืนยันตัวตน กรุณาลองใหม่อีกครั้ง",
-            button_url="/",
-            button_text="กลับไปหน้าหลัก",
-            user=None,
-        )
+        return "ไม่พบรหัสยืนยันตัวตน", 400
 
     data = {
         "client_id": CLIENT_ID,
@@ -760,39 +737,18 @@ def callback():
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     token_resp = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
-
     access_token = token_resp.json().get("access_token")
 
     if not access_token:
-        return render_template_string(
-            HTML_TEMPLATE,
-            title="เกิดข้อผิดพลาด",
-            result_state="error",
-            result_title="เกิดข้อผิดพลาด",
-            result_message="เกิดข้อผิดพลาดในการดึง Token จาก Discord",
-            button_url="/",
-            button_text="กลับไปหน้าหลัก",
-            user=None,
-        )
+        return "เกิดข้อผิดพลาดในการดึง Token", 400
 
-    user_headers = {"Authorization": f"Bearer {access_token}"}
-    user_data = requests.get("https://discord.com/api/users/@me", headers=user_headers).json()
+    user_data = requests.get("https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {access_token}"}).json()
     user_id = user_data.get("id")
     username = user_data.get("username")
-    global_name = user_data.get("global_name", username)
     avatar_id = user_data.get("avatar")
+    avatar_url = f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_id}.png" if avatar_id else "https://cdn.discordapp.com/embed/avatars/0.png"
 
-    if avatar_id:
-        avatar_url = f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_id}.png"
-    else:
-        avatar_url = "https://cdn.discordapp.com/embed/avatars/0.png"
-
-    user_info = {
-        "id": user_id,
-        "username": username,
-        "global_name": global_name,
-        "avatar_url": avatar_url,
-    }
+    user_info = {"id": user_id, "username": username, "avatar_url": avatar_url}
 
     bot_headers = {"Authorization": f"Bot {BOT_TOKEN}"}
     add_role_url = f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}/roles/{ROLE_ID}"
@@ -804,9 +760,7 @@ def callback():
             title="ยืนยันตัวตนสำเร็จ",
             result_state="success",
             result_title="ให้ยศสำเร็จ",
-            result_message="ระบบได้ทำการเพิ่มยศให้คุณเรียบร้อยแล้ว สามารถกลับเข้าสู่ Discord ได้เลย",
-            button_url="https://discord.com/app",
-            button_text="กลับไปที่ Discord",
+            result_message="ระบบได้เพิ่มยศให้คุณเรียบร้อยแล้ว",
             user=user_info,
             role_name=get_role_name(GUILD_ID, ROLE_ID) or "Verified",
         )
@@ -816,48 +770,27 @@ def callback():
             title="เกิดข้อผิดพลาด",
             result_state="error",
             result_title="เกิดข้อผิดพลาด",
-            result_message="ไม่สามารถเพิ่มยศได้ (บอทอาจจะยศต่ำกว่ายศที่ต้องการให้ หรือไม่ได้อยู่ในกิลด์)",
-            button_url="/",
-            button_text="ลองใหม่อีกครั้ง",
+            result_message="ไม่สามารถเพิ่มยศได้ (ตรวจสอบลำดับยศของบอท)",
             user=user_info,
         )
-
-
-def run_web():
-    app.run(host="0.0.0.0", port=5000)
-
 
 class VerifyView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-        discord_login_url = (
-            f"https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}"
-            f"&redirect_uri={REDIRECT_URI}&response_type=code&scope=identify%20guilds.join"
-        )
-        self.add_item(
-            discord.ui.Button(
-                label="ยืนยันตัวตนเข้าดิส",
-                url=discord_login_url,
-                style=discord.ButtonStyle.link,
-                emoji="<a:emoji_125:1283873278129213471>",
-            )
-        )
 
+    @discord.ui.button(label="ยืนยันตัวตน", style=discord.ButtonStyle.green, emoji="<a:emoji_125:1283873278129213471>", custom_id="verify_button")
+    async def verify_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        verify_url = "https://sssssssssssssssssssss-5l9s.onrender.com/"
+        await interaction.response.send_message(f"คลิกลิงก์นี้เพื่อยืนยันตัวตน: {verify_url}", ephemeral=True)
 
-class VerifyBot(commands.Bot):
-    def __init__(self):
-        intents = discord.Intents.default()
-        super().__init__(command_prefix="!", intents=intents)
-
-    async def setup_hook(self):
-        await self.tree.sync()
-        print(f"Logged in as {self.user} (ID: {self.user.id})")
-
-    async def on_ready(self):
-        print(f"Bot พร้อมใช้งานแล้ว: {self.user}")
-
-
-bot = VerifyBot()
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    try:
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} command(s).")
+    except Exception as e:
+        print(e)
 
 @bot.tree.command(name="setup", description="ส่งหน้าต่างยืนยันตัวตนสำหรับสมาชิก")
 @app_commands.checks.has_permissions(administrator=True)
@@ -874,9 +807,12 @@ async def setup(interaction: discord.Interaction):
     await interaction.response.send_message("✅ สร้างปุ่มยืนยันตัวตนสำเร็จ!", ephemeral=True)
     await interaction.channel.send(embed=embed, view=VerifyView())
 
-if __name__ == "__main__":
-    web_thread = threading.Thread(target=run_web)
-    web_thread.daemon = True
-    web_thread.start()
+def run_web():
+    app.run(host="0.0.0.0", port=5000)
 
+if __name__ == "__main__":
+    t = threading.Thread(target=run_web)
+    t.daemon = True
+    t.start()
+    
     bot.run(BOT_TOKEN)
