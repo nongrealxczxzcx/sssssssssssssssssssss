@@ -486,13 +486,19 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             background-size: 42px 42px, 42px 42px;
             color: var(--text-main);
             font-family: 'Plus Jakarta Sans', sans-serif;
-            padding: 36px 20px;
+            padding: clamp(14px, 4vw, 36px);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
             overflow-x: hidden;
+        }
+
+        /* Fine film-grain texture for a premium physical finish */
+        .grain {
+            position: fixed; inset: -100px; z-index: 3; pointer-events: none; opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
 
         /* Ambient blobs, tuned to the gold/teal identity */
@@ -550,13 +556,13 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             width: 100%; max-width: 1500px;
             background: linear-gradient(180deg, rgba(14, 16, 21, 0.92), rgba(8, 9, 13, 0.97));
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 28px; padding: 28px;
+            border-radius: clamp(18px, 3vw, 28px); padding: clamp(14px, 2.6vw, 28px);
             box-shadow: 0 50px 100px rgba(0,0,0,0.85), 0 0 90px rgba(242,183,5,0.05), inset 0 1px 0 rgba(255,255,255,0.04);
             backdrop-filter: blur(30px);
             position: relative; overflow: hidden; z-index: 1;
             opacity: 0; transform: translateY(18px);
             animation: pageIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards;
-            display: grid; grid-template-columns: 272px 1fr; gap: 26px;
+            display: grid; grid-template-columns: 272px 1fr; gap: clamp(14px, 2vw, 26px);
         }
         .dashboard-wrapper::before {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
@@ -616,7 +622,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         .main-content { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
 
         .topbar { display: flex; justify-content: space-between; align-items: center; padding: 2px 4px 0; }
-        .topbar h1 { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.2px; }
+        .topbar h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.15rem, 3vw, 1.5rem); font-weight: 700; letter-spacing: -0.2px; }
         .topbar p { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
         .topbar-badge {
             font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; color: var(--teal);
@@ -628,7 +634,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
         .stat-card {
             background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 18px;
-            padding: 24px 26px; position: relative; overflow: hidden;
+            padding: clamp(18px, 2.4vw, 24px) clamp(18px, 2.6vw, 26px); position: relative; overflow: hidden;
             transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), border-color 0.4s ease, box-shadow 0.4s ease;
             box-shadow: 0 15px 40px rgba(0,0,0,0.35);
             opacity: 0; transform: translateY(14px);
@@ -667,7 +673,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         /* Split-flap style digits */
         .flap-row { display: flex; align-items: baseline; gap: 1px; font-family: 'JetBrains Mono', monospace; }
         .flap-char {
-            position: relative; display: inline-block; font-size: 2.35rem; font-weight: 700;
+            position: relative; display: inline-block; font-size: clamp(1.7rem, 4.2vw, 2.35rem); font-weight: 700;
             color: #fff; min-width: 0.62em; text-align: center;
             transform-style: preserve-3d;
         }
@@ -788,29 +794,156 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         @keyframes progressAnim { to { width: 0%; } }
 
         @media (max-width: 900px) {
-            .dashboard-wrapper { grid-template-columns: 1fr; padding: 16px; border-radius: 22px; }
-            .sidebar { flex-direction: row; align-items: center; padding: 15px 16px; }
-            .sidebar > div:first-child { display: flex; align-items: center; gap: 18px; }
+            .dashboard-wrapper { grid-template-columns: 1fr; }
+            .sidebar { flex-direction: row; align-items: center; padding: 14px 16px; gap: 16px; }
+            .sidebar > div:first-child { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
             .brand-sub { display: none; }
-            .nav-menu { flex-direction: row; }
-            .sidebar-footer { display: none; }
-            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .nav-menu {
+                flex-direction: row; gap: 6px; overflow-x: auto; scrollbar-width: none;
+                -ms-overflow-style: none; padding-bottom: 2px;
+            }
+            .nav-menu::-webkit-scrollbar { display: none; }
+            .nav-item { white-space: nowrap; padding: 10px 14px; font-size: 0.86rem; }
+            .sidebar-footer {
+                display: flex; flex-direction: row; align-items: center; gap: 14px;
+                border-top: none; border-left: 1px solid var(--border-color);
+                padding-top: 0; padding-left: 16px; margin-left: auto; flex-shrink: 0;
+            }
+            .sidebar-footer div:last-child { display: none; }
         }
+
+        /* Stat cards keep their desktop card shape on phones — a swipeable,
+           snap-scrolling strip instead of stacking into a plain list. */
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: none;
+                grid-auto-flow: column;
+                grid-auto-columns: 78%;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                scrollbar-width: none; -ms-overflow-style: none;
+                padding-bottom: 2px; margin: 0 -2px;
+            }
+            .stats-grid::-webkit-scrollbar { display: none; }
+            .stat-card { scroll-snap-align: start; }
+        }
+
         @media (max-width: 560px) {
-            .stats-grid { grid-template-columns: 1fr; }
-            .sidebar { flex-wrap: wrap; }
-            #notification-container { top: 14px; right: 14px; left: 14px; width: auto; }
+            #notification-container { top: 12px; right: 12px; left: 12px; width: auto; }
+            .topbar { flex-wrap: wrap; gap: 10px; }
+            .section-header { padding: 18px 20px; }
+            .activity-item { padding: 15px 20px; }
+            .activity-item:hover { padding-left: 24px; }
+            .user-id-badge { font-size: 0.74rem; padding: 5px 10px; margin-left: 8px; }
         }
+
+        /* Floating scroll-to-top, appears once the page has scrolled */
+        .scroll-top-btn {
+            position: fixed; bottom: 22px; right: 22px; z-index: 500;
+            width: 46px; height: 46px; border-radius: 14px;
+            background: rgba(17, 20, 26, 0.9); border: 1px solid var(--gold-border);
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+            opacity: 0; visibility: hidden; transform: translateY(10px) scale(0.9);
+            transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1), visibility 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .scroll-top-btn.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+        .scroll-top-btn svg { width: 18px; height: 18px; stroke: var(--gold); }
+        .scroll-top-btn:hover { border-color: var(--gold); transform: translateY(-2px) scale(1.04); }
 
         a:focus-visible, button:focus-visible, .notify-box:focus-visible {
             outline: 2px solid var(--gold); outline-offset: 2px;
         }
+
+        /* Section highlight when navigated to */
+        .section-box.pulse-highlight { animation: sectionPulse 1.4s ease-out; }
+        @keyframes sectionPulse {
+            0% { box-shadow: 0 20px 45px rgba(0,0,0,0.4), 0 0 0 1px var(--gold-border), 0 0 40px rgba(242,183,5,0.25); }
+            100% { box-shadow: 0 20px 45px rgba(0,0,0,0.4); }
+        }
+
+        /* Settings modal */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center;
+            background: rgba(6, 7, 10, 0.72); backdrop-filter: blur(6px);
+            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
+            padding: 20px;
+        }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+        .modal-card {
+            width: 100%; max-width: 440px;
+            background: linear-gradient(180deg, rgba(17,20,26,0.98), rgba(11,13,17,0.99));
+            border: 1px solid var(--border-color); border-radius: 20px;
+            box-shadow: 0 40px 90px rgba(0,0,0,0.7), 0 0 60px rgba(242,183,5,0.06);
+            padding: 26px 26px 22px; position: relative; overflow: hidden;
+            transform: translateY(18px) scale(0.97); opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.35s ease;
+        }
+        .modal-overlay.open .modal-card { transform: translateY(0) scale(1); opacity: 1; }
+        .modal-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, transparent 5%, var(--gold) 45%, var(--teal) 80%, transparent);
+        }
+        .modal-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; }
+        .modal-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .modal-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.15rem; font-weight: 700; }
+        .modal-close {
+            width: 30px; height: 30px; border-radius: 9px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-color);
+            color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: all 0.2s ease; flex-shrink: 0;
+        }
+        .modal-close:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+        .field-group { margin-bottom: 18px; }
+        .field-label {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 1px; color: var(--text-muted);
+            text-transform: uppercase; display: block; margin-bottom: 8px;
+        }
+        .field-input {
+            width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 11px;
+            padding: 11px 14px; color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .field-input:focus { outline: none; border-color: var(--gold-border); background: rgba(255,255,255,0.05); }
+
+        .toggle-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 13px 0; border-bottom: 1px solid var(--border-color);
+        }
+        .toggle-row:last-of-type { border-bottom: none; }
+        .toggle-label { font-size: 0.88rem; font-weight: 600; }
+        .toggle-desc { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; }
+        .switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; cursor: pointer; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch-track {
+            position: absolute; inset: 0; background: rgba(255,255,255,0.1); border-radius: 20px;
+            transition: background 0.25s ease; border: 1px solid var(--border-color);
+        }
+        .switch-track::before {
+            content: ''; position: absolute; width: 18px; height: 18px; left: 2px; top: 2px;
+            background: #cfd3da; border-radius: 50%; transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.25s ease;
+        }
+        .switch input:checked + .switch-track { background: var(--gold-soft); border-color: var(--gold-border); }
+        .switch input:checked + .switch-track::before { transform: translateX(18px); background: var(--gold); }
+
+        .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+        .btn {
+            flex: 1; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 0.88rem;
+            border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--gold), #d99a04); color: #14171c; border: none; }
+        .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+        .btn-ghost { background: rgba(255,255,255,0.03); color: var(--text-muted); }
+        .btn-ghost:hover { background: rgba(255,255,255,0.06); color: var(--text-main); }
     </style>
 </head>
 <body>
 
     <div class="aurora"><span></span><span></span></div>
     <div class="scanline"></div>
+    <div class="grain"></div>
 
     <!-- Loader -->
     <div id="loader">
@@ -823,6 +956,55 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
     </div>
 
     <div id="notification-container"></div>
+
+    <div class="modal-overlay" id="settings-overlay">
+        <div class="modal-card">
+            <div class="modal-head">
+                <div>
+                    <span class="modal-eyebrow">CONFIG // GENERAL</span>
+                    <span class="modal-title">System Settings</span>
+                </div>
+                <div class="modal-close" id="settings-close">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label" for="setting-notif-title">Notification title</label>
+                <input class="field-input" type="text" id="setting-notif-title" value="ระบบสำเร็จ">
+            </div>
+            <div class="field-group" style="margin-bottom: 20px;">
+                <label class="field-label" for="setting-notif-msg">Notification message</label>
+                <input class="field-input" type="text" id="setting-notif-msg" value="โหลดข้อมูล Dashboard เรียบร้อยแล้ว">
+            </div>
+
+            <div class="toggle-row">
+                <div>
+                    <div class="toggle-label">Scanline effect</div>
+                    <div class="toggle-desc">แถบสแกนที่กวาดผ่านหน้าจอ</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="setting-scanline" checked>
+                    <span class="switch-track"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <div>
+                    <div class="toggle-label">Ambient glow</div>
+                    <div class="toggle-desc">แสงพื้นหลังทอง/เขียวมิ้นท์</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="setting-aurora" checked>
+                    <span class="switch-track"></span>
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-ghost" id="settings-cancel">Cancel</button>
+                <button class="btn btn-primary" id="settings-save">Save changes</button>
+            </div>
+        </div>
+    </div>
 
     <div class="dashboard-wrapper">
 
@@ -839,15 +1021,15 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
                 </div>
                 <div class="brand-sub">Verification Console</div>
                 <div class="nav-menu">
-                    <a href="#" class="nav-item active">
+                    <a href="#" class="nav-item active" id="nav-dashboard">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
                         Dashboard
                     </a>
-                    <a href="#" class="nav-item">
+                    <a href="#" class="nav-item" id="nav-verified">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         Verified
                     </a>
-                    <a href="#" class="nav-item">
+                    <a href="#" class="nav-item" id="nav-settings">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
                         Settings
                     </a>
@@ -902,11 +1084,11 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
                 </div>
             </div>
 
-            <div class="section-box">
+            <div class="section-box" id="verified-section">
                 <div class="section-header">
                     <div>
                         <span class="section-eyebrow">LOG // ACTIVITY</span>
-                        <span class="section-title">Recent Verifications</span>
+                        <span class="section-title" id="verified-section-title">Recent Verifications</span>
                     </div>
                     <span class="live-badge"><span class="live-dot"></span> Live Updates</span>
                 </div>
@@ -926,7 +1108,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
                                 <div class="user-handle">@{{ u[1] }}</div>
                             </div>
                         </div>
-                        <span class="user-id-badge">{{ u[4] }}</span>
+                        <span class="user-id-badge" data-utc="{{ u[4] }}">{{ u[4] }}</span>
                     </div>
                     {% else %}
                     <div class="empty-state">
@@ -940,7 +1122,27 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         </main>
     </div>
 
+    <button class="scroll-top-btn" id="scroll-top-btn" aria-label="Scroll to top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+    </button>
+
     <script>
+        // Backend stores timestamps in UTC without a +7 offset for Thailand.
+        // Convert "YYYY-MM-DD HH:MM:SS" (assumed UTC) to Asia/Bangkok time for display.
+        function toThaiTime(str) {
+            const m = String(str).match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);
+            if (!m) return str;
+            const utcMs = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+            const thaiMs = utcMs + 7 * 60 * 60 * 1000;
+            const d = new Date(thaiMs);
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+        }
+
+        document.querySelectorAll('.user-id-badge[data-utc]').forEach((el) => {
+            el.textContent = toThaiTime(el.getAttribute('data-utc'));
+        });
+
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const loader = document.getElementById('loader');
@@ -1038,9 +1240,83 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             });
         }
 
+        let demoNotifTitle = "ระบบสำเร็จ";
+        let demoNotifMsg = "โหลดข้อมูล Dashboard เรียบร้อยแล้ว";
+
         setTimeout(() => {
-            showNotification("ระบบสำเร็จ", "โหลดข้อมูล Dashboard เรียบร้อยแล้ว", "success");
+            showNotification(demoNotifTitle, demoNotifMsg, "success");
         }, 1200);
+
+        // --- Nav: Verified -> smooth scroll to the log, with a highlight pulse ---
+        const navDashboard = document.getElementById('nav-dashboard');
+        const navVerified = document.getElementById('nav-verified');
+        const navSettings = document.getElementById('nav-settings');
+        const verifiedSection = document.getElementById('verified-section');
+
+        function setActiveNav(el) {
+            [navDashboard, navVerified].forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        navDashboard.addEventListener('click', (e) => {
+            e.preventDefault();
+            setActiveNav(navDashboard);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        navVerified.addEventListener('click', (e) => {
+            e.preventDefault();
+            setActiveNav(navVerified);
+            verifiedSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            verifiedSection.classList.remove('pulse-highlight');
+            void verifiedSection.offsetWidth; // restart animation
+            verifiedSection.classList.add('pulse-highlight');
+        });
+
+        // --- Nav: Settings -> modal ---
+        const overlay = document.getElementById('settings-overlay');
+        const titleInput = document.getElementById('setting-notif-title');
+        const msgInput = document.getElementById('setting-notif-msg');
+        const scanlineToggle = document.getElementById('setting-scanline');
+        const auroraToggle = document.getElementById('setting-aurora');
+        const scanlineEl = document.querySelector('.scanline');
+        const auroraEl = document.querySelector('.aurora');
+
+        function openSettings() {
+            titleInput.value = demoNotifTitle;
+            msgInput.value = demoNotifMsg;
+            overlay.classList.add('open');
+        }
+        function closeSettings() { overlay.classList.remove('open'); }
+
+        navSettings.addEventListener('click', (e) => { e.preventDefault(); openSettings(); });
+        document.getElementById('settings-close').addEventListener('click', closeSettings);
+        document.getElementById('settings-cancel').addEventListener('click', closeSettings);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSettings(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('open')) closeSettings(); });
+
+        scanlineToggle.addEventListener('change', () => {
+            scanlineEl.style.display = scanlineToggle.checked ? '' : 'none';
+        });
+        auroraToggle.addEventListener('change', () => {
+            auroraEl.style.display = auroraToggle.checked ? '' : 'none';
+        });
+
+        document.getElementById('settings-save').addEventListener('click', () => {
+            demoNotifTitle = titleInput.value.trim() || demoNotifTitle;
+            demoNotifMsg = msgInput.value.trim() || demoNotifMsg;
+            closeSettings();
+            showNotification(demoNotifTitle, demoNotifMsg, "success");
+        });
+
+        // --- Floating scroll-to-top ---
+        const scrollTopBtn = document.getElementById('scroll-top-btn');
+        window.addEventListener('scroll', () => {
+            scrollTopBtn.classList.toggle('show', window.scrollY > 400);
+        });
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     </script>
 </body>
 </html>
