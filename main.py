@@ -445,330 +445,603 @@ ERROR_TEMPLATE = """<!DOCTYPE html>
 ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Admin Dashboard - STIF SHOP</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg-base: #050508;
-    --card-bg: rgba(13, 15, 22, 0.75);
-    --accent: #23a559;
-    --accent-glow: rgba(35, 165, 89, 0.25);
-    --text-main: #ffffff;
-    --text-muted: #9ba1a6;
-    --border-color: rgba(255, 255, 255, 0.08);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background-color: var(--bg-base);
-    color: var(--text-main);
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    min-height: 100vh;
-    padding: 24px 16px;
-    position: relative;
-    overflow-x: hidden;
-  }
-  .bg-mesh {
-    position: fixed;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background: 
-      radial-gradient(circle at 20% 15%, rgba(35, 165, 89, 0.12), transparent 45%),
-      radial-gradient(circle at 80% 85%, rgba(88, 101, 242, 0.1), transparent 45%),
-      radial-gradient(circle at 50% 50%, rgba(10, 12, 18, 0.9), transparent 80%);
-  }
-  .container {
-    position: relative;
-    z-index: 10;
-    max-width: 900px;
-    margin: 0 auto;
-  }
-  .navbar {
-    background: var(--card-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 16px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-  }
-  .nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .nav-logo {
-    width: 38px;
-    height: 38px;
-    background: linear-gradient(135deg, #2ecc71, var(--accent));
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 1.1rem;
-    box-shadow: 0 0 15px var(--accent-glow);
-  }
-  .nav-title h1 {
-    font-size: 1.05rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-  }
-  .nav-title p {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-  }
-  .btn-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    color: #fff;
-    text-decoration: none;
-    border-radius: 10px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    transition: all 0.2s ease;
-  }
-  .btn-back:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .stat-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 24px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-    transition: transform 0.2s ease;
-  }
-  .stat-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(35, 165, 89, 0.3);
-  }
-  .stat-card::after {
-    content: '';
-    position: absolute;
-    top: 0; right: 0;
-    width: 100px; height: 100px;
-    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .stat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-  }
-  .stat-card h3 {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .stat-icon {
-    width: 32px; height: 32px;
-    border-radius: 8px;
-    background: rgba(35, 165, 89, 0.12);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--accent);
-  }
-  .stat-card .number {
-    font-size: 2.2rem;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -0.5px;
-  }
-  .table-box {
-    background: var(--card-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-  }
-  .table-header {
-    padding: 20px 24px;
-    font-weight: 700;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.95rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #fff;
-  }
-  .table-responsive {
-    width: 100%;
-    overflow-x: auto;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-    font-size: 0.85rem;
-    white-space: nowrap;
-  }
-  th, td {
-    padding: 14px 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  }
-  th {
-    color: var(--text-muted);
-    font-weight: 600;
-    background: rgba(255, 255, 255, 0.01);
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  tr:hover td {
-    background: rgba(255, 255, 255, 0.015);
-  }
-  .user-cell {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .user-avatar-wrap {
-    position: relative;
-  }
-  .user-avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-  }
-  .online-indicator {
-    position: absolute;
-    bottom: 0; right: 0;
-    width: 10px; height: 10px;
-    background: #23a559;
-    border: 2px solid #0d0f14;
-    border-radius: 50%;
-  }
-  .user-info .display-name {
-    font-weight: 600;
-    color: #fff;
-  }
-  .user-info .username {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-  .discord-id {
-    font-family: monospace;
-    color: var(--text-muted);
-    background: rgba(255, 255, 255, 0.03);
-    padding: 3px 8px;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.04);
-  }
-  @media (max-width: 640px) {
-    body { padding: 12px 8px; }
-    .navbar { padding: 12px 16px; }
-    th, td { padding: 12px 16px; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - STIF SHOP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0a0c10;
+            --card-bg: rgba(17, 20, 26, 0.72);
+            --card-bg-solid: rgba(15, 17, 22, 0.94);
+            --gold: #f2b705;
+            --gold-soft: rgba(242, 183, 5, 0.14);
+            --gold-border: rgba(242, 183, 5, 0.38);
+            --teal: #2dd4bf;
+            --teal-soft: rgba(45, 212, 191, 0.14);
+            --teal-border: rgba(45, 212, 191, 0.35);
+            --red: #f87171;
+            --text-main: #f5f3ee;
+            --text-muted: #8d93a1;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image:
+                linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+            background-size: 42px 42px, 42px 42px;
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            padding: 36px 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Ambient blobs, tuned to the gold/teal identity */
+        .aurora { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        .aurora span { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.45; }
+        .aurora span:nth-child(1) {
+            width: 44vw; height: 44vw; max-width: 600px; max-height: 600px; top: -16%; left: -10%;
+            background: radial-gradient(circle, rgba(242,183,5,0.35), transparent 70%);
+            animation: drift1 24s ease-in-out infinite;
+        }
+        .aurora span:nth-child(2) {
+            width: 38vw; height: 38vw; max-width: 540px; max-height: 540px; bottom: -16%; right: -8%;
+            background: radial-gradient(circle, rgba(45,212,191,0.32), transparent 70%);
+            animation: drift2 28s ease-in-out infinite;
+        }
+        @keyframes drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(6vw,5vh) scale(1.1); } }
+        @keyframes drift2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-5vw,-6vh) scale(1.08); } }
+
+        /* Subtle CRT-style scanline sweep, ties to the "monitoring" theme */
+        .scanline {
+            position: fixed; inset: 0; z-index: 2; pointer-events: none;
+            background: linear-gradient(180deg, transparent 0%, rgba(45,212,191,0.05) 50%, transparent 100%);
+            height: 220px; width: 100%;
+            animation: sweep 7s ease-in-out infinite;
+            mix-blend-mode: screen;
+        }
+        @keyframes sweep {
+            0% { transform: translateY(-260px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        /* Loader */
+        #loader {
+            position: fixed; inset: 0; background: var(--bg-base);
+            display: flex; flex-direction: column; gap: 20px; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .seal-spin {
+            width: 60px; height: 60px; position: relative;
+            animation: sealTurn 1.1s cubic-bezier(0.68,-0.4,0.3,1.3) infinite;
+            filter: drop-shadow(0 0 12px rgba(242,183,5,0.35));
+        }
+        @keyframes sealTurn { to { transform: rotate(360deg); } }
+        .loader-text {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-muted);
+            letter-spacing: 2.5px; font-weight: 600; text-transform: uppercase;
+            animation: fadeFlicker 1.8s ease-in-out infinite;
+        }
+        @keyframes fadeFlicker { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* Main Layout */
+        .dashboard-wrapper {
+            width: 100%; max-width: 1500px;
+            background: linear-gradient(180deg, rgba(14, 16, 21, 0.92), rgba(8, 9, 13, 0.97));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 28px; padding: 28px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.85), 0 0 90px rgba(242,183,5,0.05), inset 0 1px 0 rgba(255,255,255,0.04);
+            backdrop-filter: blur(30px);
+            position: relative; overflow: hidden; z-index: 1;
+            opacity: 0; transform: translateY(18px);
+            animation: pageIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards;
+            display: grid; grid-template-columns: 272px 1fr; gap: 26px;
+        }
+        .dashboard-wrapper::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, transparent 5%, var(--gold) 45%, var(--teal) 80%, transparent);
+            background-size: 200% 100%; opacity: 0.9;
+            animation: shimmerLine 6s linear infinite;
+        }
+        @keyframes shimmerLine { 0% { background-position: 0% 0; } 100% { background-position: -200% 0; } }
+        @keyframes pageIn { to { opacity: 1; transform: translateY(0); } }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px;
+            padding: 26px 18px; display: flex; flex-direction: column; justify-content: space-between; position: relative;
+        }
+        .brand-area { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .brand-mark {
+            width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--gold), #d99a04);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 20px rgba(242,183,5,0.25);
+        }
+        .brand-name { font-family: 'Space Grotesk', sans-serif; font-size: 1.22rem; font-weight: 700; letter-spacing: 0.2px; color: #fff; }
+        .brand-name span { color: var(--gold); }
+        .brand-sub {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; color: var(--text-muted);
+            letter-spacing: 2px; text-transform: uppercase; margin-bottom: 28px; padding-left: 52px; margin-top: -6px;
+        }
+
+        .nav-menu { display: flex; flex-direction: column; gap: 6px; }
+        .nav-item {
+            padding: 13px 16px; border-radius: 12px; font-size: 0.93rem; font-weight: 600;
+            color: var(--text-muted); text-decoration: none; transition: all 0.25s ease;
+            display: flex; align-items: center; gap: 12px; border: 1px solid transparent;
+        }
+        .nav-item svg { width: 18px; height: 18px; opacity: 0.85; flex-shrink: 0; }
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--gold-soft), rgba(242,183,5,0.04));
+            color: var(--gold); border: 1px solid var(--gold-border);
+            box-shadow: 0 8px 20px rgba(242,183,5,0.1);
+        }
+        .nav-item:not(.active):hover { background: rgba(255,255,255,0.04); color: var(--text-main); transform: translateX(3px); }
+        .nav-item:active { transform: scale(0.97); }
+
+        .sidebar-footer {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--text-muted);
+            border-top: 1px solid var(--border-color); padding-top: 16px;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .status-dot {
+            display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--teal);
+            margin-right: 7px; box-shadow: 0 0 8px var(--teal); animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+        /* Main content */
+        .main-content { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+
+        .topbar { display: flex; justify-content: space-between; align-items: center; padding: 2px 4px 0; }
+        .topbar h1 { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.2px; }
+        .topbar p { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+        .topbar-badge {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; color: var(--teal);
+            background: var(--teal-soft); padding: 8px 15px; border-radius: 18px; border: 1px solid var(--teal-border);
+            font-weight: 600; display: flex; align-items: center; gap: 8px; letter-spacing: 0.3px;
+        }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+        .stat-card {
+            background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 18px;
+            padding: 24px 26px; position: relative; overflow: hidden;
+            transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), border-color 0.4s ease, box-shadow 0.4s ease;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.35);
+            opacity: 0; transform: translateY(14px);
+            animation: cardIn 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+        .stat-card:nth-child(1) { animation-delay: 0.05s; }
+        .stat-card:nth-child(2) { animation-delay: 0.15s; }
+        .stat-card:nth-child(3) { animation-delay: 0.25s; }
+        @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+        .stat-card::after {
+            content: ''; position: absolute; top: -40%; right: -20%; width: 150px; height: 150px;
+            background: radial-gradient(circle, var(--card-glow, var(--gold-soft)), transparent 70%);
+            opacity: 0; transition: opacity 0.4s ease;
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+        .stat-card:hover::after { opacity: 1; }
+        .stat-card.gold:hover { border-color: var(--gold-border); }
+        .stat-card.teal:hover { border-color: var(--teal-border); --card-glow: var(--teal-soft); }
+
+        .stat-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+        .stat-card h3 {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; letter-spacing: 1.6px;
+            color: var(--text-muted); font-weight: 600; text-transform: uppercase;
+        }
+        .stat-icon {
+            width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+            background: var(--gold-soft); border: 1px solid var(--gold-border);
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .stat-icon svg { width: 16px; height: 16px; stroke: var(--gold); }
+        .stat-card.teal .stat-icon { background: var(--teal-soft); border-color: var(--teal-border); }
+        .stat-card.teal .stat-icon svg { stroke: var(--teal); }
+        .stat-card:hover .stat-icon { transform: rotate(-8deg) scale(1.08); }
+
+        /* Split-flap style digits */
+        .flap-row { display: flex; align-items: baseline; gap: 1px; font-family: 'JetBrains Mono', monospace; }
+        .flap-char {
+            position: relative; display: inline-block; font-size: 2.35rem; font-weight: 700;
+            color: #fff; min-width: 0.62em; text-align: center;
+            transform-style: preserve-3d;
+        }
+        .flap-char.unit { font-size: 1.1rem; color: var(--text-muted); font-weight: 600; margin-left: 2px; }
+        .stat-trend { font-size: 0.76rem; color: var(--teal); margin-top: 9px; font-weight: 600; }
+        .stat-card.gold .stat-trend { color: var(--gold); }
+
+        /* Section box */
+        .section-box {
+            background: var(--card-bg); border-radius: 18px; overflow: hidden; border: 1px solid var(--border-color);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.4); flex: 1; display: flex; flex-direction: column;
+            opacity: 0; transform: translateY(14px);
+            animation: cardIn 0.7s cubic-bezier(0.16,1,0.3,1) forwards; animation-delay: 0.32s;
+        }
+        .section-header { padding: 20px 26px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .section-eyebrow {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 2px; color: var(--text-muted);
+            text-transform: uppercase; margin-bottom: 3px; display: block;
+        }
+        .section-title { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 600; }
+        .live-badge {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--teal); background: var(--teal-soft);
+            padding: 6px 13px; border-radius: 18px; border: 1px solid var(--teal-border);
+            display: flex; align-items: center; gap: 7px; font-weight: 600;
+        }
+        .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: pulse 1.6s ease-in-out infinite; }
+
+        #list { max-height: 500px; overflow-y: auto; }
+        #list::-webkit-scrollbar { width: 6px; }
+        #list::-webkit-scrollbar-thumb { background: var(--gold-border); border-radius: 10px; }
+        #list::-webkit-scrollbar-track { background: transparent; }
+
+        .activity-item {
+            display: flex; align-items: center; justify-content: space-between; padding: 16px 26px;
+            border-bottom: 1px solid var(--border-color); transition: background 0.25s ease, padding-left 0.25s ease;
+            animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards; opacity: 0;
+        }
+        .activity-item:last-child { border-bottom: none; }
+        @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .activity-item:hover { background: rgba(242,183,5,0.045); padding-left: 32px; }
+
+        .user-info { display: flex; align-items: center; gap: 15px; min-width: 0; }
+
+        /* Scanner-frame avatar — corner brackets appear like a viewfinder capture */
+        .avatar-wrap { position: relative; flex-shrink: 0; width: 44px; height: 44px; }
+        .avatar-wrap img {
+            width: 100%; height: 100%; border-radius: 11px; border: 2px solid var(--border-color);
+            object-fit: cover; transition: border-color 0.25s ease, transform 0.25s ease; display: block;
+        }
+        .activity-item:hover .avatar-wrap img { border-color: rgba(255,255,255,0.16); transform: scale(1.04); }
+        .corner { position: absolute; width: 10px; height: 10px; border: 2px solid var(--gold); opacity: 0; transition: opacity 0.25s ease, transform 0.25s ease; }
+        .corner.tl { top: -4px; left: -4px; border-right: none; border-bottom: none; border-radius: 4px 0 0 0; transform: translate(4px, 4px); }
+        .corner.tr { top: -4px; right: -4px; border-left: none; border-bottom: none; border-radius: 0 4px 0 0; transform: translate(-4px, 4px); }
+        .corner.bl { bottom: -4px; left: -4px; border-right: none; border-top: none; border-radius: 0 0 0 4px; transform: translate(4px, -4px); }
+        .corner.br { bottom: -4px; right: -4px; border-left: none; border-top: none; border-radius: 0 0 4px 0; transform: translate(-4px, -4px); }
+        .activity-item:hover .corner { opacity: 1; transform: translate(0, 0); }
+
+        .avatar-badge {
+            position: absolute; bottom: -3px; right: -3px; width: 16px; height: 16px;
+            background: var(--gold); border-radius: 50%; border: 2px solid #101318;
+            display: flex; align-items: center; justify-content: center;
+            animation: stampIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        .avatar-badge svg { width: 9px; height: 9px; stroke: #14171c; stroke-width: 3.5; }
+        @keyframes stampIn { from { transform: scale(0) rotate(-35deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+
+        .user-text { min-width: 0; }
+        .user-name { font-weight: 700; font-size: 0.97rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-handle { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+
+        .user-id-badge {
+            font-family: 'JetBrains Mono', monospace; color: var(--gold); background: var(--gold-soft);
+            padding: 6px 13px; border-radius: 9px; font-size: 0.82rem; border: 1px solid var(--gold-border);
+            flex-shrink: 0; margin-left: 12px; letter-spacing: 0.3px;
+        }
+
+        .empty-state { padding: 56px 30px; text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .empty-state svg { width: 34px; height: 34px; stroke: var(--text-muted); opacity: 0.6; animation: floatIcon 3s ease-in-out infinite; }
+        @keyframes floatIcon { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+        /* Notifications — styled like a stamp landing on a log entry */
+        #notification-container { position: fixed; top: 26px; right: 26px; z-index: 1000; display: flex; flex-direction: column; gap: 11px; width: min(360px, calc(100vw - 40px)); }
+        .notify-box {
+            background: rgba(14, 16, 21, 0.97); border: 1px solid var(--nc-border, var(--gold-border));
+            padding: 15px 17px; border-radius: 14px;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.65);
+            display: flex; align-items: flex-start; gap: 13px;
+            backdrop-filter: blur(14px); position: relative; overflow: hidden;
+            animation: notifyIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards; cursor: pointer;
+        }
+        .notify-box:hover { transform: translateX(-3px); }
+        .notify-box.leaving { animation: notifyOut 0.4s cubic-bezier(0.4,0,1,1) forwards; }
+        @keyframes notifyIn { from { transform: translateX(120%) scale(0.9); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
+        @keyframes notifyOut { to { transform: translateX(120%) scale(0.9); opacity: 0; } }
+
+        .notify-icon {
+            width: 36px; height: 36px; background: var(--nc-soft, var(--gold-soft)); border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            animation: stampImpact 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.08s both;
+        }
+        .notify-icon svg { width: 17px; height: 17px; stroke: var(--nc, var(--gold)); stroke-width: 2.4; }
+        @keyframes stampImpact { from { transform: scale(1.9) rotate(-20deg); opacity: 0; } 70% { transform: scale(0.94) rotate(2deg); } to { transform: scale(1) rotate(0); opacity: 1; } }
+        .notify-content { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding-top: 1px; }
+        .notify-title { font-weight: 700; font-size: 0.91rem; color: #fff; }
+        .notify-desc { font-size: 0.79rem; color: var(--text-muted); line-height: 1.4; }
+        .notify-close {
+            position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; color: var(--text-muted);
+            font-size: 0.65rem; opacity: 0; transition: opacity 0.2s ease, background 0.2s ease;
+        }
+        .notify-box:hover .notify-close { opacity: 1; }
+        .notify-close:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .notify-progress {
+            position: absolute; bottom: 0; left: 0; height: 3px;
+            background: linear-gradient(90deg, var(--nc, var(--gold)), var(--teal));
+            width: 100%; animation: progressAnim linear forwards; animation-duration: var(--dur, 4s);
+        }
+        @keyframes progressAnim { to { width: 0%; } }
+
+        @media (max-width: 900px) {
+            .dashboard-wrapper { grid-template-columns: 1fr; padding: 16px; border-radius: 22px; }
+            .sidebar { flex-direction: row; align-items: center; padding: 15px 16px; }
+            .sidebar > div:first-child { display: flex; align-items: center; gap: 18px; }
+            .brand-sub { display: none; }
+            .nav-menu { flex-direction: row; }
+            .sidebar-footer { display: none; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 560px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .sidebar { flex-wrap: wrap; }
+            #notification-container { top: 14px; right: 14px; left: 14px; width: auto; }
+        }
+
+        a:focus-visible, button:focus-visible, .notify-box:focus-visible {
+            outline: 2px solid var(--gold); outline-offset: 2px;
+        }
+    </style>
 </head>
 <body>
-  <div class="bg-mesh"></div>
-  <div class="container">
-    <div class="navbar">
-      <div class="nav-brand">
-        <div class="nav-logo">⚡</div>
-        <div class="nav-title">
-          <h1>STIF SHOP</h1>
-          <p>Admin Control Center</p>
-        </div>
-      </div>
-      <a href="/" class="btn-back">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        <span>หน้าแรกเว็บไซต์</span>
-      </a>
+
+    <div class="aurora"><span></span><span></span></div>
+    <div class="scanline"></div>
+
+    <!-- Loader -->
+    <div id="loader">
+        <svg class="seal-spin" viewBox="0 0 60 60" fill="none">
+            <circle cx="30" cy="30" r="26" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+            <path d="M30 4 A26 26 0 0 1 56 30" stroke="#f2b705" stroke-width="3" stroke-linecap="round"/>
+            <path d="M30 56 A26 26 0 0 1 4 30" stroke="#2dd4bf" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <div class="loader-text">Verifying Session</div>
     </div>
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-header">
-          <h3>ยอดรับยศทั้งหมด</h3>
-          <div class="stat-icon">👥</div>
-        </div>
-        <div class="number">{{ total_count }}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-header">
-          <h3>รับยศวันนี้</h3>
-          <div class="stat-icon">✨</div>
-        </div>
-        <div class="number">{{ today_count }}</div>
-      </div>
+    <div id="notification-container"></div>
+
+    <div class="dashboard-wrapper">
+
+        <aside class="sidebar">
+            <div>
+                <div class="brand-area">
+                    <div class="brand-mark">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#14171c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2 3 6v6c0 5 3.8 8.7 9 10 5.2-1.3 9-5 9-10V6l-9-4Z"/>
+                            <path d="m9 12 2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <div class="brand-name">STIF<span>SHOP</span></div>
+                </div>
+                <div class="brand-sub">Verification Console</div>
+                <div class="nav-menu">
+                    <a href="#" class="nav-item active">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+                        Dashboard
+                    </a>
+                    <a href="#" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        Verified
+                    </a>
+                    <a href="#" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+                        Settings
+                    </a>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <div><span class="status-dot"></span>STATUS.ONLINE</div>
+                <div>BUILD v3.1</div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+
+            <div class="topbar">
+                <div>
+                    <h1>ภาพรวมระบบ</h1>
+                    <p>สรุปข้อมูลผู้ใช้และกิจกรรมล่าสุด</p>
+                </div>
+                <div class="topbar-badge"><span class="live-dot"></span> ระบบทำงานปกติ</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card gold">
+                    <div class="stat-top">
+                        <h3>Total Verified</h3>
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                    </div>
+                    <div class="flap-row" data-flap="{{ total_count }}"></div>
+                    <div class="stat-trend">ผู้ใช้ทั้งหมดที่ยืนยันแล้ว</div>
+                </div>
+                <div class="stat-card gold">
+                    <div class="stat-top">
+                        <h3>Today Verified</h3>
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                        </div>
+                    </div>
+                    <div class="flap-row" data-flap="{{ today_count }}"></div>
+                    <div class="stat-trend">ยืนยันตัวตนวันนี้</div>
+                </div>
+                <div class="stat-card teal">
+                    <div class="stat-top">
+                        <h3>System Ping</h3>
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+                        </div>
+                    </div>
+                    <div class="flap-row" data-flap="12" data-unit="ms"></div>
+                    <div class="stat-trend">การตอบสนองของระบบ</div>
+                </div>
+            </div>
+
+            <div class="section-box">
+                <div class="section-header">
+                    <div>
+                        <span class="section-eyebrow">LOG // ACTIVITY</span>
+                        <span class="section-title">Recent Verifications</span>
+                    </div>
+                    <span class="live-badge"><span class="live-dot"></span> Live Updates</span>
+                </div>
+                <div id="list">
+                    {% for u in users %}
+                    <div class="activity-item" style="animation-delay: {{ loop.index * 0.06 }}s;">
+                        <div class="user-info">
+                            <div class="avatar-wrap">
+                                <img src="{{ u[3] or 'https://cdn.discordapp.com/embed/avatars/0.png' }}" alt="avatar">
+                                <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+                                <div class="avatar-badge">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                </div>
+                            </div>
+                            <div class="user-text">
+                                <div class="user-name">{{ u[2] or u[1] }}</div>
+                                <div class="user-handle">@{{ u[1] }}</div>
+                            </div>
+                        </div>
+                        <span class="user-id-badge">{{ u[4] }}</span>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18" opacity="0.5"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg>
+                        <div>ยังไม่มีข้อมูลผู้ใช้</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </main>
     </div>
 
-    <div class="table-box">
-      <div class="table-header">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-        <span>ประวัติการยืนยันตัวตนล่าสุด</span>
-      </div>
-      <div class="table-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th>ผู้ใช้งาน</th>
-              <th>Discord ID</th>
-              <th>เวลาที่ยืนยัน</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% if users %}
-              {% for u in users %}
-              <tr>
-                <td>
-                  <div class="user-cell">
-                    <div class="user-avatar-wrap">
-                      <img src="{{ u[3] if u[3] else 'https://cdn.discordapp.com/embed/avatars/0.png' }}" class="user-avatar" alt="Avatar">
-                      <div class="online-indicator"></div>
-                    </div>
-                    <div class="user-info">
-                      <div class="display-name">{{ u[2] or u[1] }}</div>
-                      <div class="username">@{{ u[1] }}</div>
-                    </div>
-                  </div>
-                </td>
-                <td><span class="discord-id">{{ u[0] }}</span></td>
-                <td style="color: var(--text-muted);">{{ u[4] }}</td>
-              </tr>
-              {% endfor %}
-            {% else %}
-              <tr>
-                <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 40px;">ยังไม่มีข้อมูลการยืนยันตัวตนในระบบ</td>
-              </tr>
-            {% endif %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+    <script>
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+            }, 450);
+
+            // Split-flap digit reveal for stat numbers
+            document.querySelectorAll('.flap-row').forEach((row) => {
+                const value = row.getAttribute('data-flap') || '0';
+                const unit = row.getAttribute('data-unit');
+                const chars = value.split('');
+
+                chars.forEach((ch, i) => {
+                    const span = document.createElement('span');
+                    span.className = 'flap-char';
+                    span.textContent = '0';
+                    row.appendChild(span);
+
+                    const delay = 550 + i * 110;
+                    setTimeout(() => {
+                        span.style.transition = 'transform 0.28s cubic-bezier(0.6,0,0.4,1), opacity 0.28s ease';
+                        span.style.transform = 'rotateX(-90deg)';
+                        span.style.opacity = '0.2';
+                        setTimeout(() => {
+                            span.textContent = ch;
+                            span.style.transform = 'rotateX(0deg)';
+                            span.style.opacity = '1';
+                        }, 260);
+                    }, delay);
+                });
+
+                if (unit) {
+                    const u = document.createElement('span');
+                    u.className = 'flap-char unit';
+                    u.textContent = ' ' + unit;
+                    row.appendChild(u);
+                }
+            });
+        });
+
+        // Notification system, styled as a verification stamp landing on a log entry
+        const notifyIcons = {
+            success: '<path d="M20 6 9 17l-5-5"/>',
+            info: '<circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/>',
+            warning: '<path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>',
+            error: '<circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/>'
+        };
+        const notifyTheme = {
+            success: { c: '#f2b705', soft: 'rgba(242,183,5,0.14)', border: 'rgba(242,183,5,0.38)' },
+            info:    { c: '#2dd4bf', soft: 'rgba(45,212,191,0.14)', border: 'rgba(45,212,191,0.35)' },
+            warning: { c: '#fbbf24', soft: 'rgba(251,191,36,0.14)', border: 'rgba(251,191,36,0.35)' },
+            error:   { c: '#f87171', soft: 'rgba(248,113,113,0.14)', border: 'rgba(248,113,113,0.35)' }
+        };
+
+        function showNotification(title, message, type = 'success', duration = 4000) {
+            const container = document.getElementById('notification-container');
+            const theme = notifyTheme[type] || notifyTheme.success;
+
+            const box = document.createElement('div');
+            box.className = 'notify-box';
+            box.style.setProperty('--nc', theme.c);
+            box.style.setProperty('--nc-soft', theme.soft);
+            box.style.setProperty('--nc-border', theme.border);
+            box.style.setProperty('--dur', duration + 'ms');
+            box.setAttribute('role', 'status');
+            box.setAttribute('tabindex', '0');
+
+            box.innerHTML = `
+                <div class="notify-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">${notifyIcons[type] || notifyIcons.success}</svg>
+                </div>
+                <div class="notify-content">
+                    <div class="notify-title">${title}</div>
+                    <div class="notify-desc">${message}</div>
+                </div>
+                <div class="notify-close">✕</div>
+                <div class="notify-progress"></div>
+            `;
+
+            function dismiss() {
+                if (box.classList.contains('leaving')) return;
+                box.classList.add('leaving');
+                setTimeout(() => box.remove(), 400);
+            }
+
+            box.querySelector('.notify-close').addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
+            box.addEventListener('click', dismiss);
+
+            container.appendChild(box);
+            const timer = setTimeout(dismiss, duration);
+            box.addEventListener('mouseenter', () => {
+                clearTimeout(timer);
+                box.querySelector('.notify-progress').style.animationPlayState = 'paused';
+            });
+        }
+
+        setTimeout(() => {
+            showNotification("ระบบสำเร็จ", "โหลดข้อมูล Dashboard เรียบร้อยแล้ว", "success");
+        }, 1200);
+    </script>
 </body>
 </html>
 """
