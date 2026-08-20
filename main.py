@@ -15,7 +15,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
-REDIRECT_URI = "https://sdfsafasfasfsafasf.onrender.com/callback"
+REDIRECT_URI = "https://stifshop.up.railway.app/callback"
 
 GUILD_ID = 1207514483527000084
 ROLE_ID = 1211224793060478976
@@ -554,7 +554,7 @@ class VerifyView(discord.ui.View):
         self.add_item(
             discord.ui.Button(
                 label="ยืนยันตัวตนเข้าดิส",
-                url="https://discord.com/oauth2/authorize?client_id=1292567654405771334&response_type=code&redirect_uri=https%3A%2F%2Fsdfsafasfasfsafasf.onrender.com%2Fcallback&scope=identify+guilds.join",
+                url="https://discord.com/oauth2/authorize?client_id=1292567654405771334&response_type=code&redirect_uri=https%3A%2F%2Fstifshop.up.railway.app%2Fcallback&scope=identify",
                 style=discord.ButtonStyle.link,
                 emoji="<a:emoji_125:1283873278129213471>",
             )
