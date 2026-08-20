@@ -20,7 +20,7 @@ REDIRECT_URI = "https://stifshop.up.railway.app/callback"
 GUILD_ID = 1207514483527000084
 ROLE_ID = 1211224793060478976
 
-WEBHOOK_SUCCESS = "https://discord.com/api/webhooks/1540031111223189701/KhD_TF8YMxmRih4KQCH-MtBnTy74Qcodk7trYCqjy7_z6-6zQ8frXd8dJX-FOaZ1MO7X"
+WEBHOOK_SUCCESS = "https://discord.com/api/webhooks/1540031111223189701/KhD_TF8YMxmRih4KQCH-MtBnTy74Qcodk7trYCqjy7_z6-6zQ8frXd8dJX-FOaZ1MOX"
 WEBHOOK_ERROR = "https://discord.com/api/webhooks/1540031111223189701/KhD_TF8YMxmRih4KQCH-MtBnTy74Qcodk7trYCqjy7_z6-6zQ8frXd8dJX-FOaZ1MO7X"
 
 if not BOT_TOKEN or not CLIENT_SECRET:
