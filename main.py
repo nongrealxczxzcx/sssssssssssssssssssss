@@ -37,9 +37,20 @@ def init_db():
             username TEXT,
             global_name TEXT,
             avatar_url TEXT,
-            verified_at TEXT
+            verified_at TEXT,
+            role_name TEXT,
+            role_color TEXT
         )
     """)
+    conn.commit()
+
+    # Migration: เผื่อฐานข้อมูลเก่าที่ยังไม่มีคอลัมน์ role_name / role_color
+    cursor.execute("PRAGMA table_info(verified_users)")
+    existing_cols = {row[1] for row in cursor.fetchall()}
+    if "role_name" not in existing_cols:
+        cursor.execute("ALTER TABLE verified_users ADD COLUMN role_name TEXT")
+    if "role_color" not in existing_cols:
+        cursor.execute("ALTER TABLE verified_users ADD COLUMN role_color TEXT")
     conn.commit()
     conn.close()
 
@@ -710,6 +721,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             display: flex; align-items: center; justify-content: space-between; padding: 16px 26px;
             border-bottom: 1px solid var(--border-color); transition: background 0.25s ease, padding-left 0.25s ease;
             animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards; opacity: 0;
+            gap: 14px;
         }
         .activity-item:last-child { border-bottom: none; }
         @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -744,10 +756,27 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         .user-name { font-weight: 700; font-size: 0.97rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-handle { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
 
+        /* Role badge — shows which Discord role the user received */
+        .role-badge {
+            display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: 600;
+            padding: 6px 12px; border-radius: 9px; letter-spacing: 0.2px;
+            background: var(--role-soft, rgba(255,255,255,0.05));
+            border: 1px solid var(--role-border, rgba(255,255,255,0.12));
+            color: var(--role-c, var(--text-main));
+        }
+        .role-dot {
+            width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+            background: var(--role-c, var(--text-muted));
+            box-shadow: 0 0 6px var(--role-c, transparent);
+        }
+
+        .item-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
         .user-id-badge {
             font-family: 'JetBrains Mono', monospace; color: var(--gold); background: var(--gold-soft);
             padding: 6px 13px; border-radius: 9px; font-size: 0.82rem; border: 1px solid var(--gold-border);
-            flex-shrink: 0; margin-left: 12px; letter-spacing: 0.3px;
+            flex-shrink: 0; letter-spacing: 0.3px;
         }
 
         .empty-state { padding: 56px 30px; text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 12px; }
@@ -832,9 +861,11 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             #notification-container { top: 12px; right: 12px; left: 12px; width: auto; }
             .topbar { flex-wrap: wrap; gap: 10px; }
             .section-header { padding: 18px 20px; }
-            .activity-item { padding: 15px 20px; }
+            .activity-item { padding: 15px 20px; flex-wrap: wrap; }
             .activity-item:hover { padding-left: 24px; }
-            .user-id-badge { font-size: 0.74rem; padding: 5px 10px; margin-left: 8px; }
+            .item-right { margin-left: auto; }
+            .user-id-badge { font-size: 0.74rem; padding: 5px 10px; }
+            .role-badge { font-size: 0.72rem; padding: 5px 9px; }
         }
 
         /* Floating scroll-to-top, appears once the page has scrolled */
@@ -1108,7 +1139,14 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
                                 <div class="user-handle">@{{ u[1] }}</div>
                             </div>
                         </div>
-                        <span class="user-id-badge" data-utc="{{ u[4] }}">{{ u[4] }}</span>
+                        <div class="item-right">
+                            {% if u[5] %}
+                            <span class="role-badge" style="--role-c: {{ u[6] or '#f2b705' }}; --role-soft: {{ u[6] or '#f2b705' }}22; --role-border: {{ u[6] or '#f2b705' }}55;">
+                                <span class="role-dot"></span>{{ u[5] }}
+                            </span>
+                            {% endif %}
+                            <span class="user-id-badge" data-utc="{{ u[4] }}">{{ u[4] }}</span>
+                        </div>
                     </div>
                     {% else %}
                     <div class="empty-state">
@@ -1462,8 +1500,18 @@ def callback():
                 conn = sqlite3.connect("verifications.db")
                 cursor = conn.cursor()
                 cursor.execute(
-                    "INSERT OR REPLACE INTO verified_users (user_id, username, global_name, avatar_url, verified_at) VALUES (?, ?, ?, ?, ?)",
-                    (user_id, username, global_name, avatar_url, str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                    """INSERT OR REPLACE INTO verified_users
+                       (user_id, username, global_name, avatar_url, verified_at, role_name, role_color)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        user_id,
+                        username,
+                        global_name,
+                        avatar_url,
+                        str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                        role_info["name"],
+                        role_info["color"],
+                    )
                 )
                 conn.commit()
                 conn.close()
@@ -1508,7 +1556,10 @@ def admin_stats():
     cursor.execute("SELECT COUNT(*) FROM verified_users WHERE verified_at LIKE ?", (f"{today_str}%",))
     today_count = cursor.fetchone()[0]
 
-    cursor.execute("SELECT user_id, username, global_name, avatar_url, verified_at FROM verified_users ORDER BY verified_at DESC LIMIT 50")
+    cursor.execute(
+        """SELECT user_id, username, global_name, avatar_url, verified_at, role_name, role_color
+           FROM verified_users ORDER BY verified_at DESC LIMIT 50"""
+    )
     users = cursor.fetchall()
     conn.close()
 
