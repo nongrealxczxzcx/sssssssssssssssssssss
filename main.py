@@ -721,7 +721,7 @@ async def setup(interaction: discord.Interaction):
         title="⚙️ STIF SHOP",
         description=f"🛒    บอทรับยศ 24 ชั่วโมง\n\n"
                     f"📥 กดปุ่มข้างล่างเพื่อรับยศ <@&{ROLE_ID}>",
-        color=discord.Color(0x23a559)
+        color=discord.Color(0x000000)
     )
     embed.set_footer(
         text="🟢• STIF SHOP • ระบบรับยศ",
