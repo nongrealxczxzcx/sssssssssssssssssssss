@@ -5,8 +5,10 @@ import sqlite3
 import discord
 from discord import app_commands
 from discord.ext import commands
-from flask import Flask, redirect, request, render_template_string, session
+from flask import Flask, redirect, request, render_template_string, session, jsonify
 import requests
+import logging
+from collections import deque
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -27,6 +29,32 @@ if not BOT_TOKEN or not CLIENT_SECRET:
     raise RuntimeError(
         "กรุณาตั้งค่า BOT_TOKEN และ CLIENT_SECRET เป็น environment variable ก่อนรัน"
     )
+
+# ---- In-memory log buffer, powers the "terminal" panel in /admin/stats ----
+LOG_BUFFER_MAXLEN = 300
+log_buffer = deque(maxlen=LOG_BUFFER_MAXLEN)
+
+class MemoryLogHandler(logging.Handler):
+    """เก็บ log ล่าสุดไว้ใน memory เพื่อโชว์แบบ live ในหน้า admin dashboard"""
+    def emit(self, record):
+        try:
+            log_buffer.append({
+                "time": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+                "level": record.levelname,
+                "message": self.format(record),
+            })
+        except Exception:
+            pass
+
+logger = logging.getLogger("stifshop")
+logger.setLevel(logging.INFO)
+_stream_handler = logging.StreamHandler()
+_stream_handler.setFormatter(logging.Formatter("%(message)s"))
+_memory_handler = MemoryLogHandler()
+_memory_handler.setFormatter(logging.Formatter("%(message)s"))
+logger.addHandler(_stream_handler)
+logger.addHandler(_memory_handler)
+logger.propagate = False
 
 def init_db():
     conn = sqlite3.connect("verifications.db", check_same_thread=False)
@@ -783,6 +811,78 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         .empty-state svg { width: 34px; height: 34px; stroke: var(--text-muted); opacity: 0.6; animation: floatIcon 3s ease-in-out infinite; }
         @keyframes floatIcon { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
+        /* View switcher — Dashboard vs Logs (terminal) */
+        .view-panel { display: none; flex-direction: column; gap: 22px; flex: 1; min-height: 0; }
+        .view-panel.active { display: flex; }
+
+        /* Terminal / error-log panel */
+        .terminal-card {
+            background: #07080b; border: 1px solid var(--border-color); border-radius: 18px;
+            overflow: hidden; box-shadow: 0 20px 45px rgba(0,0,0,0.5), inset 0 0 70px rgba(45,212,191,0.03);
+            flex: 1; display: flex; flex-direction: column; min-height: 420px;
+            opacity: 0; transform: translateY(14px);
+            animation: cardIn 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+        .terminal-titlebar {
+            display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+            padding: 16px 20px; background: linear-gradient(180deg, rgba(255,255,255,0.035), transparent);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .terminal-id { display: flex; align-items: center; gap: 14px; min-width: 0; }
+        .terminal-dots { display: flex; gap: 7px; flex-shrink: 0; }
+        .terminal-dots span { width: 11px; height: 11px; border-radius: 50%; display: block; }
+        .terminal-dots span:nth-child(1) { background: #ff5f57; }
+        .terminal-dots span:nth-child(2) { background: #febc2e; }
+        .terminal-dots span:nth-child(3) { background: #28c840; }
+        .terminal-path {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-muted);
+            display: flex; align-items: center; gap: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .terminal-path .t-user { color: #7ee787; }
+        .terminal-path .t-path { color: var(--gold); }
+        .terminal-path .t-cmd { color: var(--text-main); }
+        .terminal-filters { display: flex; gap: 6px; flex-shrink: 0; }
+        .term-filter-btn {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;
+            padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.03);
+            color: var(--text-muted); cursor: pointer; transition: all 0.2s ease;
+        }
+        .term-filter-btn:hover { background: rgba(255,255,255,0.07); color: var(--text-main); }
+        .term-filter-btn.active { color: #08090c; background: var(--teal); border-color: var(--teal); }
+        .terminal-body {
+            flex: 1; padding: 16px 20px 20px; overflow-y: auto; max-height: 520px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.7;
+            background-image: linear-gradient(rgba(45,212,191,0.015) 50%, transparent 50%);
+            background-size: 100% 4px;
+        }
+        .terminal-body::-webkit-scrollbar { width: 6px; }
+        .terminal-body::-webkit-scrollbar-thumb { background: var(--gold-border); border-radius: 10px; }
+        .terminal-body::-webkit-scrollbar-track { background: transparent; }
+        .term-line {
+            display: flex; gap: 12px; white-space: pre-wrap; word-break: break-word;
+            opacity: 0; animation: termLineIn 0.35s ease forwards; padding: 1px 0;
+        }
+        @keyframes termLineIn { to { opacity: 1; } }
+        .term-time { color: #4a5160; flex-shrink: 0; }
+        .term-level { flex-shrink: 0; font-weight: 700; letter-spacing: 0.5px; }
+        .term-level.ERROR { color: var(--red); }
+        .term-level.WARNING { color: #fbbf24; }
+        .term-level.INFO { color: var(--teal); }
+        .term-level.DEBUG { color: var(--text-muted); }
+        .term-msg { color: #dbe0e8; }
+        .term-cursor {
+            display: inline-block; width: 8px; height: 15px; background: var(--teal); margin-left: 2px;
+            animation: cursorBlink 1s step-end infinite; vertical-align: -2px;
+        }
+        @keyframes cursorBlink { 50% { opacity: 0; } }
+        .term-empty { color: #565d68; font-style: italic; padding: 6px 0; }
+        .terminal-footer {
+            padding: 10px 20px; border-top: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted);
+        }
+        .terminal-footer .live-badge { padding: 4px 11px; }
+
         /* Notifications — styled like a stamp landing on a log entry */
         #notification-container { position: fixed; top: 26px; right: 26px; z-index: 1000; display: flex; flex-direction: column; gap: 11px; width: min(360px, calc(100vw - 40px)); }
         .notify-box {
@@ -1060,6 +1160,10 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         Verified
                     </a>
+                    <a href="#" class="nav-item" id="nav-logs">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m6 9 3 3-3 3"/><path d="M12 15h6"/></svg>
+                        Logs
+                    </a>
                     <a href="#" class="nav-item" id="nav-settings">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
                         Settings
@@ -1082,78 +1186,106 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
                 <div class="topbar-badge"><span class="live-dot"></span> ระบบทำงานปกติ</div>
             </div>
 
-            <div class="stats-grid">
-                <div class="stat-card gold">
-                    <div class="stat-top">
-                        <h3>Total Verified</h3>
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <div class="view-panel active" id="view-dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card gold">
+                        <div class="stat-top">
+                            <h3>Total Verified</h3>
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </div>
                         </div>
+                        <div class="flap-row" data-flap="{{ total_count }}"></div>
+                        <div class="stat-trend">ผู้ใช้ทั้งหมดที่ยืนยันแล้ว</div>
                     </div>
-                    <div class="flap-row" data-flap="{{ total_count }}"></div>
-                    <div class="stat-trend">ผู้ใช้ทั้งหมดที่ยืนยันแล้ว</div>
+                    <div class="stat-card gold">
+                        <div class="stat-top">
+                            <h3>Today Verified</h3>
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                            </div>
+                        </div>
+                        <div class="flap-row" data-flap="{{ today_count }}"></div>
+                        <div class="stat-trend">ยืนยันตัวตนวันนี้</div>
+                    </div>
+                    <div class="stat-card teal">
+                        <div class="stat-top">
+                            <h3>System Ping</h3>
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+                            </div>
+                        </div>
+                        <div class="flap-row" data-flap="12" data-unit="ms"></div>
+                        <div class="stat-trend">การตอบสนองของระบบ</div>
+                    </div>
                 </div>
-                <div class="stat-card gold">
-                    <div class="stat-top">
-                        <h3>Today Verified</h3>
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+
+                <div class="section-box" id="verified-section">
+                    <div class="section-header">
+                        <div>
+                            <span class="section-eyebrow">LOG // ACTIVITY</span>
+                            <span class="section-title" id="verified-section-title">Recent Verifications</span>
                         </div>
+                        <span class="live-badge"><span class="live-dot"></span> Live Updates</span>
                     </div>
-                    <div class="flap-row" data-flap="{{ today_count }}"></div>
-                    <div class="stat-trend">ยืนยันตัวตนวันนี้</div>
-                </div>
-                <div class="stat-card teal">
-                    <div class="stat-top">
-                        <h3>System Ping</h3>
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+                    <div id="list">
+                        {% for u in users %}
+                        <div class="activity-item" style="animation-delay: {{ loop.index * 0.06 }}s;">
+                            <div class="user-info">
+                                <div class="avatar-wrap">
+                                    <img src="{{ u[3] or 'https://cdn.discordapp.com/embed/avatars/0.png' }}" alt="avatar">
+                                    <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+                                    <div class="avatar-badge">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                    </div>
+                                </div>
+                                <div class="user-text">
+                                    <div class="user-name">{{ u[2] or u[1] }}</div>
+                                    <div class="user-handle">@{{ u[1] }}</div>
+                                </div>
+                            </div>
+                            <div class="item-right">
+                                {% if u[5] %}
+                                <span class="role-badge" style="--role-c: {{ u[6] or '#f2b705' }}; --role-soft: {{ u[6] or '#f2b705' }}22; --role-border: {{ u[6] or '#f2b705' }}55;">
+                                    <span class="role-dot"></span>{{ u[5] }}
+                                </span>
+                                {% endif %}
+                                <span class="user-id-badge" data-utc="{{ u[4] }}">{{ u[4] }}</span>
+                            </div>
                         </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18" opacity="0.5"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg>
+                            <div>ยังไม่มีข้อมูลผู้ใช้</div>
+                        </div>
+                        {% endfor %}
                     </div>
-                    <div class="flap-row" data-flap="12" data-unit="ms"></div>
-                    <div class="stat-trend">การตอบสนองของระบบ</div>
                 </div>
             </div>
 
-            <div class="section-box" id="verified-section">
-                <div class="section-header">
-                    <div>
-                        <span class="section-eyebrow">LOG // ACTIVITY</span>
-                        <span class="section-title" id="verified-section-title">Recent Verifications</span>
-                    </div>
-                    <span class="live-badge"><span class="live-dot"></span> Live Updates</span>
-                </div>
-                <div id="list">
-                    {% for u in users %}
-                    <div class="activity-item" style="animation-delay: {{ loop.index * 0.06 }}s;">
-                        <div class="user-info">
-                            <div class="avatar-wrap">
-                                <img src="{{ u[3] or 'https://cdn.discordapp.com/embed/avatars/0.png' }}" alt="avatar">
-                                <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-                                <div class="avatar-badge">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                                </div>
-                            </div>
-                            <div class="user-text">
-                                <div class="user-name">{{ u[2] or u[1] }}</div>
-                                <div class="user-handle">@{{ u[1] }}</div>
+            <div class="view-panel" id="view-logs">
+                <div class="terminal-card" id="terminal-card">
+                    <div class="terminal-titlebar">
+                        <div class="terminal-id">
+                            <div class="terminal-dots"><span></span><span></span><span></span></div>
+                            <div class="terminal-path">
+                                <span class="t-user">admin@stifshop</span><span style="opacity:.4">:</span><span class="t-path">~/logs</span><span style="opacity:.4">$</span><span class="t-cmd">tail -f error.log</span>
                             </div>
                         </div>
-                        <div class="item-right">
-                            {% if u[5] %}
-                            <span class="role-badge" style="--role-c: {{ u[6] or '#f2b705' }}; --role-soft: {{ u[6] or '#f2b705' }}22; --role-border: {{ u[6] or '#f2b705' }}55;">
-                                <span class="role-dot"></span>{{ u[5] }}
-                            </span>
-                            {% endif %}
-                            <span class="user-id-badge" data-utc="{{ u[4] }}">{{ u[4] }}</span>
+                        <div class="terminal-filters">
+                            <button class="term-filter-btn active" data-filter="ALL">ALL</button>
+                            <button class="term-filter-btn" data-filter="ERROR">ERROR</button>
+                            <button class="term-filter-btn" data-filter="WARNING">WARN</button>
+                            <button class="term-filter-btn" data-filter="INFO">INFO</button>
                         </div>
                     </div>
-                    {% else %}
-                    <div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18" opacity="0.5"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg>
-                        <div>ยังไม่มีข้อมูลผู้ใช้</div>
+                    <div class="terminal-body" id="terminal-body">
+                        <div class="term-empty">// กำลังเชื่อมต่อ log stream...</div>
                     </div>
-                    {% endfor %}
+                    <div class="terminal-footer">
+                        <span id="terminal-count">0 entries</span>
+                        <span class="live-badge"><span class="live-dot"></span> Live Updates</span>
+                    </div>
                 </div>
             </div>
 
@@ -1288,27 +1420,107 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         // --- Nav: Verified -> smooth scroll to the log, with a highlight pulse ---
         const navDashboard = document.getElementById('nav-dashboard');
         const navVerified = document.getElementById('nav-verified');
+        const navLogs = document.getElementById('nav-logs');
         const navSettings = document.getElementById('nav-settings');
         const verifiedSection = document.getElementById('verified-section');
+        const viewDashboard = document.getElementById('view-dashboard');
+        const viewLogs = document.getElementById('view-logs');
 
         function setActiveNav(el) {
-            [navDashboard, navVerified].forEach(n => n.classList.remove('active'));
+            [navDashboard, navVerified, navLogs].forEach(n => n.classList.remove('active'));
             el.classList.add('active');
+        }
+
+        function showView(view) {
+            [viewDashboard, viewLogs].forEach(v => v.classList.remove('active'));
+            view.classList.add('active');
         }
 
         navDashboard.addEventListener('click', (e) => {
             e.preventDefault();
             setActiveNav(navDashboard);
+            showView(viewDashboard);
+            stopLogsPolling();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
         navVerified.addEventListener('click', (e) => {
             e.preventDefault();
             setActiveNav(navVerified);
+            showView(viewDashboard);
+            stopLogsPolling();
             verifiedSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             verifiedSection.classList.remove('pulse-highlight');
             void verifiedSection.offsetWidth; // restart animation
             verifiedSection.classList.add('pulse-highlight');
+        });
+
+        // --- Nav: Logs -> terminal panel with live-polled error log ---
+        const terminalBody = document.getElementById('terminal-body');
+        const terminalCount = document.getElementById('terminal-count');
+        const filterBtns = document.querySelectorAll('.term-filter-btn');
+        let currentLogFilter = 'ALL';
+        let logsPollTimer = null;
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function renderLogs(logs) {
+            terminalCount.textContent = logs.length + ' entries';
+            if (!logs.length) {
+                terminalBody.innerHTML = '<div class="term-empty">// ยังไม่มี log รายการ ระบบทำงานปกติ</div>';
+                return;
+            }
+            const filtered = currentLogFilter === 'ALL' ? logs : logs.filter(l => l.level === currentLogFilter);
+            if (!filtered.length) {
+                terminalBody.innerHTML = '<div class="term-empty">// ไม่มี log ประเภทนี้</div>';
+                return;
+            }
+            const wasNearBottom = (terminalBody.scrollHeight - terminalBody.scrollTop - terminalBody.clientHeight) < 60;
+            terminalBody.innerHTML = filtered.map((l, i) => `
+                <div class="term-line" style="animation-delay:${Math.min(i, 20) * 0.02}s;">
+                    <span class="term-time">${toThaiTime(l.time)}</span>
+                    <span class="term-level ${l.level}">${l.level.padEnd(7, ' ')}</span>
+                    <span class="term-msg">${escapeHtml(l.message)}</span>
+                </div>
+            `).join('') + '<span class="term-cursor"></span>';
+            if (wasNearBottom) terminalBody.scrollTop = terminalBody.scrollHeight;
+        }
+
+        async function fetchLogs() {
+            try {
+                const res = await fetch('/admin/logs');
+                if (!res.ok) return;
+                const data = await res.json();
+                renderLogs(data.logs || []);
+            } catch (e) { /* เงียบไว้ ไม่รบกวนผู้ใช้ */ }
+        }
+
+        function startLogsPolling() {
+            fetchLogs();
+            if (!logsPollTimer) logsPollTimer = setInterval(fetchLogs, 4000);
+        }
+        function stopLogsPolling() {
+            if (logsPollTimer) { clearInterval(logsPollTimer); logsPollTimer = null; }
+        }
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLogFilter = btn.getAttribute('data-filter');
+                fetchLogs();
+            });
+        });
+
+        navLogs.addEventListener('click', (e) => {
+            e.preventDefault();
+            setActiveNav(navLogs);
+            showView(viewLogs);
+            startLogsPolling();
         });
 
         // --- Nav: Settings -> modal ---
@@ -1386,20 +1598,20 @@ def get_role_info(guild_id, role_id):
                     "color": _role_color_hex(role.get("color")),
                 }
     except Exception as e:
-        print("ดึงข้อมูลยศไม่สำเร็จ:", e)
+        logger.error(f"ดึงข้อมูลยศไม่สำเร็จ: {e}")
     return {"name": "Verified", "color": "#23a559"}
 
 def send_webhook_log(webhook_url, title, description, color, avatar_url=None,
-                      author_name=None, fields=None, footer_text="STIF SHOP • ระบบยืนยันตัวตน"):
+                     author_name=None, fields=None, footer_text="STIF SHOP • ระบบยืนยันตัวตน"):
     if not webhook_url or webhook_url.startswith("ใส่_"):
-        print("[webhook] skipped: no url configured")
+        logger.warning("[webhook] skipped: no url configured")
         return
     try:
         embed = {
             "title": title,
             "description": description,
             "color": color,
-            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
         if author_name:
             embed["author"] = {"name": author_name}
@@ -1419,12 +1631,12 @@ def send_webhook_log(webhook_url, title, description, color, avatar_url=None,
         resp = requests.post(webhook_url, json=payload, timeout=10)
 
         if resp.status_code != 204:
-            print(f"[webhook] FAILED status={resp.status_code} body={resp.text}")
+            logger.error(f"[webhook] FAILED status={resp.status_code} body={resp.text}")
         else:
-            print("[webhook] sent ok")
+            logger.info("[webhook] sent ok")
  
     except Exception as e:
-        print("[webhook] exception:", e)
+        logger.error(f"[webhook] exception: {e}")
 
 @app.route("/")
 def home():
@@ -1459,6 +1671,7 @@ def callback():
         access_token = token_json.get("access_token")
 
         if not access_token:
+            logger.error("❌ ไม่สามารถขอ Access Token จาก Discord ได้ (OAuth token exchange failed)")
             send_webhook_log(WEBHOOK_ERROR, "❌ ยืนยันตัวตนล้มเหลว", "ไม่สามารถขอ Access Token จาก Discord ได้", 16711680)
             return render_template_string(ERROR_TEMPLATE, error_message="เกิดข้อผิดพลาดในการขอ Token จากระบบ Discord")
 
@@ -1494,8 +1707,10 @@ def callback():
         r = requests.put(add_role_url, headers=bot_headers)
 
         if r.status_code not in [200, 204]:
+            logger.error(f"❌ เพิ่มยศไม่สำเร็จ สำหรับ {username} ({user_id}) — API status {r.status_code}")
             send_webhook_log(WEBHOOK_ERROR, "❌ เพิ่มยศไม่สำเร็จ", f"ผู้ใช้: {username} (`{user_id}`)\nAPI Error Code: {r.status_code}", 16711680)
         else:
+            logger.info(f"✅ {username} ({user_id}) ยืนยันตัวตนสำเร็จ — ได้รับยศ {role_info['name']}")
             if not already_verified:
                 conn = sqlite3.connect("verifications.db")
                 cursor = conn.cursor()
@@ -1533,7 +1748,7 @@ def callback():
         )
 
     except Exception as e:
-        print("Error ในหน้า callback:", e)
+        logger.error(f"💥 Exception ในหน้า /callback: {e}")
         send_webhook_log(WEBHOOK_ERROR, "💥 ระบบเกิดข้อผิดพลาดรุนแรง (Exception)", f"Error details: `{str(e)}`", 16711680)
         return render_template_string(ERROR_TEMPLATE, error_message="เกิดข้อผิดพลาดบางประการจากระบบเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้งในภายหลัง")
 
@@ -1565,6 +1780,12 @@ def admin_stats():
 
     return render_template_string(ADMIN_STATS_TEMPLATE, total_count=total_count, today_count=today_count, users=users)
 
+@app.route("/admin/logs")
+def admin_logs():
+    if not session.get("is_admin"):
+        return jsonify({"error": "unauthorized"}), 403
+    return jsonify({"logs": list(log_buffer)})
+
 @app.route("/admin/login", strict_slashes=False)
 def admin_login():
     code = request.args.get("code")
@@ -1592,6 +1813,7 @@ def admin_login():
                         session["is_admin"] = True
                         return redirect("/admin/stats")
 
+    logger.warning("⚠️ มีความพยายามเข้าหน้า admin โดยไม่มีสิทธิ์ (ไม่ใช่ผู้ดูแลเซิร์ฟเวอร์)")
     return render_template_string(ERROR_TEMPLATE, error_message="คุณไม่มีสิทธิ์เข้าถึงหน้าแดชบอร์ดแอดมิน (ต้องเป็นผู้ดูแลเซิร์ฟเวอร์เท่านั้น)")
 
 class VerifyView(discord.ui.View):
