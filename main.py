@@ -461,8 +461,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               </div>
             </div>
  
-            <div class="profile-name">{{ user.username if user and user.username else 'ผู้ใช้งานทั่วไป' }}</div>
+            <!-- แสดง Global Name (ชื่อที่ตั้งโชว์) หรือ Username ถ้าไม่มี -->
+            <div class="profile-name">{{ user.global_name if user and user.global_name else (user.username if user else 'ผู้ใช้งานทั่วไป') }}</div>
+            
             <div class="profile-handle-row">
+              <!-- แสดง Username (ชื่อไอดีจริง) -->
               <span>{{ user.username if user and user.username else 'username' }}</span>
               <span>•</span>
               <span style="color: #00a8fc; cursor: pointer;">เพิ่มสรรพนาม</span>
@@ -644,6 +647,7 @@ def callback():
     user_data = requests.get("https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {access_token}"}).json()
     user_id = user_data.get("id")
     username = user_data.get("username")
+    global_name = user_data.get("global_name") # ดึงชื่อแสดงผล (Display Name)
     avatar_id = user_data.get("avatar")
     avatar_url = f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_id}.png" if avatar_id else "https://cdn.discordapp.com/embed/avatars/0.png"
 
@@ -654,7 +658,8 @@ def callback():
 
     user_info = {
         "id": user_id, 
-        "username": username, 
+        "username": username,
+        "global_name": global_name,
         "avatar_url": avatar_url,
         "joined_at": joined_date_thai
     }
