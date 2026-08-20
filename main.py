@@ -39,177 +39,226 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>{{ title | default('กำลังตรวจสอบและรับยศ') }}</title>
+<title>{{ title | default('ระบบยืนยันตัวตน STIF SHOP') }}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg-0:#050507;
-    --card-bg:#111214;
-    --border-color:rgba(35, 165, 89, 0.2);
-    --text-hi:#ffffff;
-    --text-lo:#949ba4;
-    --accent-green:#23a559;
+  :root {
+    --bg-base: #07090e;
+    --card-bg: rgba(17, 18, 24, 0.75);
+    --card-border: rgba(35, 165, 89, 0.25);
+    --accent-green: #23a559;
+    --accent-green-hover: #1f8b4c;
+    --text-main: #f2f3f5;
+    --text-muted: #949ba4;
   }
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-  html,body{
-    height:100%;
-    min-height:100dvh;
-    background:var(--bg-0);
-    overflow-x:hidden;
-    overflow-y:auto;
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    min-height: 100dvh;
+    background-color: var(--bg-base);
+    font-family: 'Sarabun', 'Kanit', sans-serif;
+    color: var(--text-main);
+    overflow-x: hidden;
+    overflow-y: auto;
   }
-  body{
-    font-family:'Sarabun','Kanit',sans-serif;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    position:relative;
-    isolation:isolate;
-    min-height:100dvh;
-    padding:24px 16px;
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 16px;
+    position: relative;
+    isolation: isolate;
   }
- 
-  .ambient-bg{
-    position:fixed;inset:0;pointer-events:none;z-index:1;
-    background:
-      radial-gradient(circle at 50% 0%, rgba(35, 165, 89, 0.15), transparent 65%),
-      radial-gradient(circle at 50% 100%, rgba(10, 15, 12, 0.5), transparent 60%);
-    transition:background 0.8s ease;
+
+  /* Dynamic Background Effects */
+  .bg-glow {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: 
+      radial-gradient(circle at 50% 15%, rgba(35, 165, 89, 0.18), transparent 50%),
+      radial-gradient(circle at 10% 90%, rgba(88, 101, 242, 0.1), transparent 40%);
   }
- 
-  .noise{
-    position:fixed;inset:0;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-    mix-blend-mode:overlay;pointer-events:none;z-index:2;
+
+  .bg-noise {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.025'/%3E%3C/svg%3E");
   }
- 
-  .card-wrap{ position:relative; z-index:10; width:100%; max-width:400px; margin:auto; }
-  .card-glow{
-    position:absolute; inset:-3px; border-radius:26px;
-    background:linear-gradient(135deg, rgba(35,165,89,0.35), rgba(88,101,242,0.1));
-    filter:blur(20px);
-    opacity:0.7;
-    z-index:-1;
-    animation:glowPulse 6s ease-in-out infinite;
+
+  .wrapper {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 420px;
   }
-  @keyframes glowPulse{
-    0%,100%{ opacity:0.5; transform:scale(1); }
-    50%{ opacity:0.8; transform:scale(1.02); }
+
+  .main-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 28px 22px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(35, 165, 89, 0.1);
+    text-align: center;
+    animation: cardAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
- 
-  .card{
-    position:relative;
-    width:100%;
-    padding:24px 20px;
-    background:var(--card-bg);
-    border:1px solid var(--border-color);
-    border-radius:22px;
-    box-shadow: 0 30px 70px -15px rgba(0,0,0,0.95), 0 0 30px rgba(35, 165, 89, 0.1);
-    text-align:center;
-    animation:cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-    overflow: hidden;
+
+  @keyframes cardAppear {
+    from { opacity: 0; transform: translateY(24px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
-  @keyframes cardIn{ from{opacity:0; transform:translateY(20px) scale(0.95);} to{opacity:1; transform:translateY(0) scale(1);} }
- 
-  .phase{ display:none; position:relative; z-index:3; }
-  .phase.active{ display:block; animation:phaseIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  @keyframes phaseIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
- 
-  .loader{
-    position:relative; width:88px; height:88px; margin:0 auto 22px;
-    display:flex; align-items:center; justify-content:center;
+
+  .phase { display: none; }
+  .phase.active { display: block; animation: fadeIn 0.5s ease forwards; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  .loader-ring-outer {
-    position: absolute; inset: 0; border-radius: 50%;
-    border: 2px solid transparent;
+
+  /* Loading State Styles */
+  .loader-box {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .spinner-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid transparent;
     border-top-color: var(--accent-green);
     border-right-color: rgba(35, 165, 89, 0.2);
-    animation: spinClockwise 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+    animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
   }
-  .loader-ring-inner {
-    position: absolute; inset: 12px; border-radius: 50%;
-    border: 2px solid transparent;
-    border-bottom-color: #a1a1aa;
-    border-left-color: rgba(161, 161, 170, 0.2);
-    animation: spinCounter 0.9s linear infinite;
+  .spinner-ring-inner {
+    position: absolute;
+    inset: 10px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-bottom-color: #5865f2;
+    animation: spinReverse 0.8s linear infinite;
   }
-  @keyframes spinClockwise { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  @keyframes spinCounter { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
-  .loader-core {
-    width: 12px; height: 12px; border-radius: 50%;
-    background: var(--accent-green);
-    box-shadow: 0 0 15px var(--accent-green);
-    animation: pulseCore 1.5s ease-in-out infinite alternate;
-  }
-  @keyframes pulseCore { 0% { transform: scale(0.7); opacity: 0.5; } 100% { transform: scale(1.25); opacity: 1; } }
- 
-  .eyebrow{ font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-green); margin-bottom: 6px; }
-  .title{ font-family:'Kanit',sans-serif; font-weight:600; font-size:1.2rem; color: #ffffff; margin-bottom:6px; }
-  .subtitle{ font-size:0.82rem; line-height:1.6; color:var(--text-lo); font-weight:300; margin-bottom:18px; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  @keyframes spinReverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
   
-  .status-line{
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    width:100%; padding:11px 16px; border-radius:14px;
-    border:1px solid rgba(35, 165, 89, 0.2);
-    background: rgba(35, 165, 89, 0.05);
-    color:var(--text-hi); font-size:0.8rem; font-weight:400;
+  .loader-core {
+    width: 14px;
+    height: 14px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    box-shadow: 0 0 15px var(--accent-green);
+    animation: pulse 1.2s ease-in-out infinite alternate;
   }
-  .status-line .dots span{
-    display:inline-block; width:4px; height:4px; margin-left:2px; border-radius:50%; background:var(--accent-green);
-    animation:bounce 1.2s ease-in-out infinite;
+  @keyframes pulse { from { transform: scale(0.8); opacity: 0.6; } to { transform: scale(1.3); opacity: 1; } }
+
+  .brand-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--accent-green);
+    margin-bottom: 8px;
   }
-  .status-line .dots span:nth-child(2){animation-delay:0.15s;}
-  .status-line .dots span:nth-child(3){animation-delay:0.3s;}
-  @keyframes bounce{ 0%,80%,100%{transform:translateY(0); opacity:0.3;} 40%{transform:translateY(-4px); opacity:1;} }
- 
-  .discord-profile-modal {
+
+  .title {
+    font-family: 'Kanit', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(35, 165, 89, 0.08);
+    border: 1px solid rgba(35, 165, 89, 0.2);
+    padding: 10px 18px;
+    border-radius: 50px;
+    font-size: 0.82rem;
+    color: #fff;
+  }
+  .dots span {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    margin-left: 2px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+  }
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+
+  /* Discord Profile UI Preview Card */
+  .dc-profile {
     background: #18191c;
-    border-radius: 14px;
+    border-radius: 16px;
     overflow: hidden;
     text-align: left;
-    margin-bottom: 16px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
-    border: 1px solid rgba(35, 165, 89, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    margin-bottom: 20px;
   }
- 
-  .discord-banner {
-    width: 100%;
-    height: 100px;
-    background: linear-gradient(135deg, #1f2d24 0%, #111214 100%);
+
+  .dc-banner {
+    height: 95px;
+    background: linear-gradient(135deg, #1e3526 0%, #111214 100%);
     position: relative;
+    padding: 12px;
     display: flex;
     justify-content: flex-end;
     align-items: flex-start;
-    padding: 12px;
-    border-bottom: 1px solid rgba(35, 165, 89, 0.15);
+    border-bottom: 1px solid rgba(35, 165, 89, 0.2);
   }
- 
-  /* ป้ายยืนยันตัวตนสีเขียวสุดพรีเมียม */
-  .banner-status-badge {
+
+  .verified-badge {
     background: rgba(35, 165, 89, 0.2);
-    backdrop-filter: blur(10px);
-    padding: 6px 14px;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(35, 165, 89, 0.4);
+    padding: 5px 12px;
     border-radius: 20px;
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.75rem;
-    color: #2ecc71;
+    font-size: 0.72rem;
     font-weight: 700;
-    border: 1px solid rgba(46, 204, 113, 0.4);
-    box-shadow: 0 4px 12px rgba(35, 165, 89, 0.2);
+    color: #2ecc71;
+    box-shadow: 0 4px 12px rgba(35, 165, 89, 0.25);
   }
-  .banner-status-badge svg { width: 13px; height: 13px; fill: #2ecc71; }
+  .verified-badge svg { width: 12px; height: 12px; fill: #2ecc71; }
 
-  .discord-body {
-    padding: 0 16px 16px 16px;
+  .dc-content {
+    padding: 0 16px 16px;
     background: #111214;
     position: relative;
   }
 
-  .profile-avatar-row {
+  .dc-avatar-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
@@ -217,29 +266,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     margin-bottom: 10px;
   }
 
-  .avatar-container {
-    position: relative;
-    width: 80px;
-    height: 80px;
-  }
-
-  .avatar-img {
-    width: 80px;
-    height: 80px;
+  .dc-avatar {
+    width: 78px;
+    height: 78px;
     border-radius: 50%;
+    border: 5px solid #111214;
     object-fit: cover;
-    border: 6px solid #111214;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   }
 
-  .profile-actions {
+  .dc-action-btns {
     display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 6px;
   }
-  .action-icon-btn {
-    width: 36px;
-    height: 36px;
+  .dc-icon-btn {
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: #2b2d31;
     border: none;
@@ -248,61 +290,44 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     justify-content: center;
     color: #dbdee1;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background 0.2s;
   }
-  .action-icon-btn:hover { background: #35373c; color: #fff; }
-  .action-icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
+  .dc-icon-btn:hover { background: #35373c; color: #fff; }
+  .dc-icon-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
-  .profile-name {
+  .dc-username {
     font-family: 'Kanit', sans-serif;
     font-size: 1.15rem;
     font-weight: 700;
     color: #f2f3f5;
-    line-height: 1.2;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
-  .profile-handle-row {
+  .dc-subtext {
     font-size: 0.78rem;
-    color: #b5bac1;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  .badge-row {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 10px;
-  }
-  .discord-badge {
-    width: 18px;
-    height: 18px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .roles-section {
+    color: var(--text-muted);
     margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
-  .roles-title {
+
+  .dc-section-title {
     font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
-    color: #949ba4;
-    margin-bottom: 6px;
+    color: var(--text-muted);
     letter-spacing: 0.5px;
-    text-align: left;
+    margin-bottom: 6px;
   }
-  .roles-container {
+
+  .dc-role-wrap {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    margin-bottom: 14px;
   }
-  .role-tag {
+  .dc-role-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -310,278 +335,200 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 0.75rem;
-    font-weight: 500;
     color: #dbdee1;
     border: 1px solid rgba(255,255,255,0.03);
   }
-  .role-dot {
+  .dc-role-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #23a559;
   }
 
-  .main-chat-btn {
-    width: 100%;
-    background: #23a559;
-    color: #ffffff;
-    border: none;
-    border-radius: 6px;
-    padding: 9px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    cursor: pointer;
-    margin-bottom: 16px;
-    font-family: 'Sarabun', sans-serif;
-    transition: background 0.2s;
-  }
-  .main-chat-btn:hover { background: #1f8b4c; }
-  .main-chat-btn svg { width: 16px; height: 16px; fill: currentColor; }
-
-  .divider {
+  .dc-divider {
     height: 1px;
     background: #232428;
     margin: 12px 0;
   }
 
-  .info-section-title {
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: #949ba4;
-    margin-bottom: 4px;
-    letter-spacing: 0.5px;
-    text-align: left;
-  }
-
-  .info-section-value {
-    font-size: 0.82rem;
+  .dc-info-grid {
+    font-size: 0.8rem;
     color: #dbdee1;
-    text-align: left;
     margin-bottom: 12px;
   }
 
-  .connections-placeholder {
+  /* Success Action Button */
+  .btn-action {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.82rem;
-    color: #b5bac1;
-    text-align: left;
-    margin-bottom: 12px;
-  }
-  .connections-placeholder svg { width: 14px; height: 14px; fill: #b5bac1; }
-
-  .note-box {
-    background: #111214;
-    border-radius: 4px;
-    padding: 6px 8px;
-    font-size: 0.78rem;
-    color: #949ba4;
-    text-align: left;
-  }
-
-  .result-btn {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    width: 100%; color: #ffffff; font-weight: 600; font-size: 0.95rem; padding: 13px;
-    border-radius: 12px; text-decoration: none; border: none; cursor: pointer;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #2ecc71 0%, var(--accent-green) 100%);
+    color: #fff;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 14px;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 6px 20px rgba(35, 165, 89, 0.4);
     transition: all 0.25s ease;
-    font-family: 'Sarabun', 'Kanit', sans-serif;
+    cursor: pointer;
   }
-  
-  /* ปุ่มกลับไปที่ Discord สีเขียวเงางามสะดุดตา */
-  .btn-success { 
-    background: linear-gradient(135deg, #2ecc71 0%, #23a559 100%); 
-    box-shadow: 0 6px 22px rgba(35, 165, 89, 0.45);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-  }
-  .btn-success:hover { 
-    background: linear-gradient(135deg, #27ae60 0%, #1f8b4c 100%); 
+  .btn-action:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(35, 165, 89, 0.6);
+    background: linear-gradient(135deg, #27ae60 0%, var(--accent-green-hover) 100%);
   }
 
-  @keyframes confettiFall{ 0%{transform:translateY(-20px) rotate(0deg); opacity:1;} 100%{transform:translateY(240px) rotate(360deg); opacity:0;} }
-  .confetti{ position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:0; }
-  .confetti span{ position:absolute; top:-10px; width:7px; height:11px; border-radius:2px; opacity:0.95; animation:confettiFall 2.6s ease-in forwards; }
-  #phase-result > *:not(.confetti){ position:relative; z-index:1; }
+  /* Confetti Animation Elements */
+  .confetti-container {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 5;
+  }
+  .confetti-piece {
+    position: absolute;
+    top: -10px;
+    width: 8px;
+    height: 12px;
+    border-radius: 3px;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(350px) rotate(720deg); opacity: 0; }
+  }
 </style>
 </head>
-<body class="phase-checking">
- 
-  <div class="ambient-bg"></div>
-  <div class="noise"></div>
- 
-  <div class="card-wrap">
-    <div class="card-glow"></div>
-    <div class="card">
- 
+<body>
+
+  <div class="bg-glow"></div>
+  <div class="bg-noise"></div>
+
+  <div class="wrapper">
+    <div class="main-card">
+
       <!-- PHASE 1: LOADING -->
-      <div class="phase active" id="phase-checking">
-        <div class="eyebrow">ระบบยืนยันตัวตน</div>
-        <div class="loader">
-          <div class="loader-ring-outer"></div>
-          <div class="loader-ring-inner"></div>
+      <div class="phase active" id="phase-loading">
+        <div class="brand-tag">STIF SHOP SECURITY</div>
+        <div class="loader-box">
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring-inner"></div>
           <div class="loader-core"></div>
         </div>
         <div class="title">{{ title | default('กำลังตรวจสอบข้อมูล') }}</div>
-        <div class="subtitle">
-          {{ subtitle | default('ระบบกำลังตรวจสอบสิทธิ์และเพิ่มยศให้คุณ<br>โปรดรอสักครู่ ระบบกำลังประมวลผล') | safe }}
-        </div>
-        <div class="status-line">
-          {{ status_text | default('กำลังเชื่อมต่อฐานข้อมูล Discord') }}
-          <span class="dots"><span></span><span></span><span></span></span>
+        <div class="subtitle">ระบบกำลังตรวจสอบสิทธิ์บัญชี Discord<br>และดำเนินการเพิ่มยศให้อัตโนมัติ</div>
+        <div class="status-pill">
+          <span>กำลังเชื่อมต่อเซิร์ฟเวอร์</span>
+          <div class="dots"><span></span><span></span><span></span></div>
         </div>
       </div>
- 
-      <!-- PHASE 2: RESULT -->
-      <div class="phase" id="phase-result">
-        <div class="confetti" id="confetti"></div>
- 
-        <div class="discord-profile-modal">
-          <div class="discord-banner">
-            <div class="banner-status-badge">
+
+      <!-- PHASE 2: SUCCESS RESULT -->
+      <div class="phase" id="phase-success">
+        <div class="confetti-container" id="confettiBox"></div>
+
+        <div class="dc-profile">
+          <div class="dc-banner">
+            <div class="verified-badge">
               <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
               <span>ยืนยันตัวตนแล้ว</span>
             </div>
           </div>
- 
-          <div class="discord-body">
-            <div class="profile-avatar-row">
-              <div class="avatar-container">
-                <img src="{{ user.avatar_url if user and user.avatar_url else 'https://cdn.discordapp.com/embed/avatars/0.png' }}" alt="Avatar" class="avatar-img">
-              </div>
-              <div class="profile-actions">
-                <button class="action-icon-btn" title="ข้อความ">
-                  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.6 1.38 5.11L2 22l4.89-1.38C8.4 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.44 0-2.8-.38-3.97-1.05l-.28-.17-3.02.85.86-2.95-.18-.3A7.95 7.95 0 014 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/></svg>
-                </button>
-                <button class="action-icon-btn" title="เพิ่มเพื่อน">
-                  <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                </button>
-                <button class="action-icon-btn" title="เพิ่มเติม">
-                  <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-                </button>
+
+          <div class="dc-content">
+            <div class="dc-avatar-row">
+              <img src="{{ user.avatar_url if user and user.avatar_url else 'https://cdn.discordapp.com/embed/avatars/0.png' }}" class="dc-avatar" alt="Avatar">
+              <div class="dc-action-btns">
+                <button class="dc-icon-btn" title="ส่งข้อความ"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.6 1.38 5.11L2 22l4.89-1.38C8.4 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.44 0-2.8-.38-3.97-1.05l-.28-.17-3.02.85.86-2.95-.18-.3A7.95 7.95 0 014 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/></svg></button>
+                <button class="dc-icon-btn" title="เพิ่มเพื่อน"><svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></button>
               </div>
             </div>
- 
-            <div class="profile-name">{{ user.global_name if user and user.global_name else (user.username if user else 'ผู้ใช้งานทั่วไป') }}</div>
-            
-            <div class="profile-handle-row">
+
+            <div class="dc-username">{{ user.global_name if user and user.global_name else (user.username if user else 'ผู้ใช้งานทั่วไป') }}</div>
+            <div class="dc-subtext">
               <span>{{ user.username if user and user.username else 'username' }}</span>
               <span>•</span>
-              <span style="color: #23a559; cursor: pointer;">เพิ่มสรรพนาม</span>
-              <span>•</span>
-              <span style="color: #23a559; cursor: pointer;">แท็กเซิร์ฟเวอร์ ▾</span>
+              <span style="color: var(--accent-green);">สถานะปลอดภัย</span>
             </div>
- 
-            <div class="badge-row">
-              <span class="discord-badge" title="Active Developer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#23a559"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM8.5 15H7v-4.5C7 9.67 7.67 9 8.5 9h1.5v1.5H8.5V15zm8 0h-1.5v-1.5h-1.5V12h3V15z"/></svg>
-              </span>
-            </div>
- 
-            <div class="roles-section">
-              <div class="roles-title">บทบาท</div>
-              <div class="roles-container">
-                <div class="role-tag">
-                  <span class="role-dot" style="background: {{ role_color }};"></span>
-                  <span>{{ role_name }}</span>
-                </div>
+
+            <div class="dc-section-title">บทบาทที่ได้รับ</div>
+            <div class="dc-role-wrap">
+              <div class="dc-role-pill">
+                <span class="dc-role-dot" style="background: {{ role_color }};"></span>
+                <span>{{ role_name }}</span>
               </div>
             </div>
- 
-            <button class="main-chat-btn">
-              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.6 1.38 5.11L2 22l4.89-1.38C8.4 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.44 0-2.8-.38-3.97-1.05l-.28-.17-3.02.85.86-2.95-.18-.3A7.95 7.95 0 014 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/></svg>
-              ข้อความ
-            </button>
- 
-            <div class="divider"></div>
- 
-            <div class="info-section-title">เป็นสมาชิกตั้งแต่</div>
-            <div class="info-section-value">{{ user.joined_at if user and user.joined_at else 'วันนี้' }}</div>
- 
-            <div class="info-section-title">การเชื่อมต่อ</div>
-            <div class="connections-placeholder">
-              <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-              เพิ่มการเชื่อมต่อ
-            </div>
- 
-            <div class="info-section-title">หมายเหตุ (มีเฉพาะคุณที่เห็น)</div>
-            <div class="note-box">คลิกเพื่อเพิ่มหมายเหตุ</div>
- 
+
+            <div class="dc-divider"></div>
+
+            <div class="dc-section-title">เป็นสมาชิกตั้งแต่</div>
+            <div class="dc-info-grid">{{ user.joined_at if user and user.joined_at else 'วันนี้' }}</div>
           </div>
         </div>
- 
-        <a href="{{ button_url | default('https://discord.com/app') }}"
-           id="discord-btn"
-           class="result-btn btn-success">
-          {{ button_text | default('กลับไปที่ Discord') }}
+
+        <a href="{{ button_url | default('https://discord.com/app') }}" id="returnBtn" class="btn-action">
+          <span>กลับไปที่ Discord</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </a>
       </div>
- 
+
     </div>
   </div>
- 
+
   <script>
-    function openDiscord(event) {
-      event.preventDefault();
-      const discordWebUrl = "{{ button_url | default('https://discord.com/app') }}";
+    // ฟังก์ชันช่วยสลับหน้าจอ (Loading -> Success)
+    function showSuccess() {
+      document.getElementById('phase-loading').classList.remove('active');
+      document.getElementById('phase-success').classList.add('active');
+      triggerConfetti();
+    }
+
+    // สร้างเอฟเฟกต์พลุฉลอง
+    function triggerConfetti() {
+      const box = document.getElementById('confettiBox');
+      const colors = ['#23a559', '#2ecc71', '#5865f2', '#ffffff', '#f1c40f'];
+      for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.className = 'confetti-piece';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        p.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+        p.style.animationDelay = (Math.random() * 0.3) + 's';
+        box.appendChild(p);
+      }
+    }
+
+    // ระบบตรวจจับเปิดแอป Discord อัตโนมัติ (Deep Link)
+    document.getElementById('returnBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetUrl = this.href;
       const ua = navigator.userAgent || navigator.vendor || window.opera;
-      const isAndroid = /Android/i.test(ua);
-      const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
- 
-      if (!isAndroid && !isIOS) {
-        window.location.href = discordWebUrl;
+      const isMobile = /android|iphone|ipad|ipod/i.test(ua);
+
+      if (!isMobile) {
+        window.location.href = targetUrl;
         return;
       }
- 
-      let appOpened = false;
-      const onVisibilityChange = function () { if (document.hidden) appOpened = true; };
-      document.addEventListener('visibilitychange', onVisibilityChange);
-      window.addEventListener('pagehide', onVisibilityChange);
- 
-      setTimeout(function () {
-        document.removeEventListener('visibilitychange', onVisibilityChange);
-        window.removeEventListener('pagehide', onVisibilityChange);
-        if (!appOpened) window.location.href = discordWebUrl;
-      }, 2000);
- 
-      if (isAndroid) {
-        window.location.href = 'intent://-#Intent;scheme=discord;package=com.discord;S.browser_fallback_url=' + encodeURIComponent(discordWebUrl) + ';end';
-      } else if (isIOS) {
-        window.location.href = 'discord://-';
-      }
-    }
- 
-    document.getElementById('discord-btn').addEventListener('click', openDiscord);
- 
-    function spawnConfetti() {
-      const colors = ['#2ecc71', '#ffffff', '#23a559', '#1abc9c'];
-      const container = document.getElementById('confetti');
-      if (!container) return;
-      for (let i = 0; i < 35; i++) {
-        const piece = document.createElement('span');
-        piece.style.left = Math.random() * 100 + '%';
-        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-        piece.style.animationDelay = (Math.random() * 0.4) + 's';
-        piece.style.animationDuration = (2.2 + Math.random() * 0.8) + 's';
-        container.appendChild(piece);
-      }
-    }
- 
-    setTimeout(function () {
-      document.getElementById('phase-checking').classList.remove('active');
-      document.getElementById('phase-result').classList.add('active');
-      document.body.classList.remove('phase-checking');
-      document.body.classList.add('phase-success');
-      spawnConfetti();
-    }, 3500);
+
+      let clicked = false;
+      window.addEventListener('blur', function() { clicked = true; }, { once: true });
+      
+      window.location.href = 'discord://';
+      setTimeout(function() {
+        if (!clicked) {
+          window.location.href = targetUrl;
+        }
+      }, 1500);
+    });
+
+    // หน่วงเวลาจำลองการตรวจสอบ 3 วินาทีแล้วแสดงหน้าสำเร็จสวยงาม
+    setTimeout(showSuccess, 3000);
   </script>
- 
 </body>
 </html>
 """
@@ -622,9 +569,7 @@ def home():
     return render_template_string(
         HTML_TEMPLATE,
         title="ยืนยันตัวตน",
-        subtitle="กำลังนำคุณไปหน้ายืนยันตัวตนผ่าน Discord",
         button_url=discord_login_url,
-        button_text="🚀 เข้าสู่ระบบผ่าน Discord",
         user=None,
     )
 
@@ -673,22 +618,13 @@ def callback():
 
     role_info = get_role_info(GUILD_ID, ROLE_ID)
 
-    if r.status_code in [204, 200]:
-        return render_template_string(
-            HTML_TEMPLATE,
-            title="ยืนยันตัวตนสำเร็จ",
-            user=user_info,
-            role_name=role_info["name"],
-            role_color=role_info["color"],
-        )
-    else:
-        return render_template_string(
-            HTML_TEMPLATE,
-            title="เกิดข้อผิดพลาด",
-            user=user_info,
-            role_name=role_info["name"],
-            role_color=role_info["color"],
-        )
+    return render_template_string(
+        HTML_TEMPLATE,
+        title="ยืนยันตัวตนสำเร็จ",
+        user=user_info,
+        role_name=role_info["name"],
+        role_color=role_info["color"],
+    )
 
 class VerifyView(discord.ui.View):
     def __init__(self):
