@@ -1,10 +1,18 @@
 import os
+import re
+import json
+import time
+import secrets
+import logging
+import asyncio
+import traceback
 import threading
 import datetime
+from functools import wraps
 import discord
 from discord import app_commands
 from discord.ext import commands
-from flask import Flask, redirect, request, render_template_string
+from flask import Flask, redirect, request, render_template_string, make_response
 import requests
 
 
@@ -20,11 +28,283 @@ REDIRECT_URI = "https://sdfsafasfasfsafasf.onrender.com/callback"
 GUILD_ID = 1207514483527000084
 ROLE_ID = 1211224793060478976
 
+LOG_CHANNEL_ID = int(os.environ.get("LOG_CHANNEL_ID", "1539922513189150780") or 0)
+
+ERROR_LOG_CHANNEL_ID = int(os.environ.get("ERROR_LOG_CHANNEL_ID", "1539922650510532658") or 0) or LOG_CHANNEL_ID
+
+OAUTH_STATE_TTL_SECONDS = 600         
+RATE_LIMIT_MAX_REQUESTS = 8            
+RATE_LIMIT_WINDOW_SECONDS = 60         
+VERIFY_COOLDOWN_SECONDS = 60           
+
+
+DATA_DIR = os.path.dirname(os.path.abspath(__file__))
+VERIFIED_LOG_PATH = os.path.join(DATA_DIR, "verified_users.json")
+ERROR_LOG_PATH = os.path.join(DATA_DIR, "error_log.json")
+
 if not BOT_TOKEN or not CLIENT_SECRET:
     raise RuntimeError(
         "กรุณาตั้งค่า BOT_TOKEN และ CLIENT_SECRET เป็น environment variable ก่อนรัน "
         "(ห้าม hardcode ไว้ในไฟล์ เพราะเป็นข้อมูลลับที่รั่วไหลได้ง่ายมาก)"
     )
+
+logger = logging.getLogger("verifybot-stifshop")
+logger.setLevel(logging.INFO)
+
+_console_handler = logging.StreamHandler()
+_console_handler.setFormatter(
+    logging.Formatter("[%(asctime)s] %(levelname)s - %(message)s", "%Y-%m-%d %H:%M:%S")
+)
+logger.addHandler(_console_handler)
+
+_file_handler = logging.FileHandler(os.path.join(DATA_DIR, "bot.log"), encoding="utf-8")
+_file_handler.setFormatter(
+    logging.Formatter("[%(asctime)s] %(levelname)s - %(message)s", "%Y-%m-%d %H:%M:%S")
+)
+logger.addHandler(_file_handler)
+_json_lock = threading.Lock()
+
+
+def _load_json(path):
+    with _json_lock:
+        if not os.path.exists(path):
+            return []
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                return json.loads(content) if content else []
+        except (json.JSONDecodeError, OSError) as e:
+            logger.error(f"อ่านไฟล์ JSON ไม่สำเร็จ ({path}): {e}")
+            return []
+
+
+def _append_json(path, record):
+    with _json_lock:
+        data = []
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    content = f.read().strip()
+                    data = json.loads(content) if content else []
+            except (json.JSONDecodeError, OSError) as e:
+                logger.error(f"อ่านไฟล์ JSON ไม่สำเร็จ ({path}): {e}")
+                data = []
+        data.append(record)
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except OSError as e:
+            logger.error(f"เขียนไฟล์ JSON ไม่สำเร็จ ({path}): {e}")
+
+
+def save_verified_user(user_info, role_name, ip_address=None, already_verified=False):
+    """บันทึกผู้ใช้ที่รับยศสำเร็จลง verified_users.json"""
+    record = {
+        "user_id": user_info.get("id"),
+        "username": user_info.get("username"),
+        "role_id": ROLE_ID,
+        "role_name": role_name,
+        "ip_address": ip_address,
+        "already_verified": already_verified,
+        "verified_at_utc": datetime.datetime.utcnow().isoformat(),
+        "verified_at_thai": thai_date_placeholder(),
+    }
+    _append_json(VERIFIED_LOG_PATH, record)
+    return record
+
+
+def save_error_log(context, error_message, user_info=None):
+    """บันทึก error ลง error_log.json"""
+    record = {
+        "context": context,
+        "error": _redact_secrets(error_message),
+        "user_id": user_info.get("id") if user_info else None,
+        "username": user_info.get("username") if user_info else None,
+        "timestamp_utc": datetime.datetime.utcnow().isoformat(),
+    }
+    _append_json(ERROR_LOG_PATH, record)
+    return record
+
+
+_SECRET_PATTERNS = [
+    (CLIENT_SECRET, "[REDACTED_CLIENT_SECRET]") if CLIENT_SECRET else None,
+    (BOT_TOKEN, "[REDACTED_BOT_TOKEN]") if BOT_TOKEN else None,
+]
+_SECRET_PATTERNS = [p for p in _SECRET_PATTERNS if p]
+
+
+def _redact_secrets(text):
+    if not text:
+        return text
+    text = str(text)
+    for secret_value, placeholder in _SECRET_PATTERNS:
+        if secret_value:
+            text = text.replace(secret_value, placeholder)
+    text = re.sub(r'("access_token"\s*:\s*")[^"]+(")', r"\1[REDACTED]\2", text)
+    text = re.sub(r"(access_token=)[^&\s]+", r"\1[REDACTED]", text)
+    return text
+
+
+
+def thai_date_placeholder():
+    return thai_date()
+
+def send_log_embed(embed: discord.Embed, channel_id: int = None):
+    target_channel_id = channel_id or LOG_CHANNEL_ID
+    if not target_channel_id:
+        return
+    if not bot.is_ready() or bot.loop is None:
+        logger.warning("บอทยังไม่พร้อม ส่ง log ไปยัง Discord channel ไม่ได้")
+        return
+
+    async def _send():
+        try:
+            channel = bot.get_channel(target_channel_id) or await bot.fetch_channel(target_channel_id)
+            await channel.send(embed=embed)
+        except Exception as e:
+            logger.error(f"ส่ง log ไปยัง Discord channel ({target_channel_id}) ไม่สำเร็จ: {e}")
+
+    try:
+        asyncio.run_coroutine_threadsafe(_send(), bot.loop)
+    except Exception as e:
+        logger.error(f"schedule ส่ง log ไม่สำเร็จ: {e}")
+
+_oauth_states = {}
+_oauth_states_lock = threading.Lock()
+
+
+def _purge_expired_states():
+    now = time.time()
+    expired = [s for s, ts in _oauth_states.items() if now - ts > OAUTH_STATE_TTL_SECONDS]
+    for s in expired:
+        _oauth_states.pop(s, None)
+
+
+def generate_oauth_state():
+    state = secrets.token_urlsafe(32)
+    with _oauth_states_lock:
+        _purge_expired_states()
+        _oauth_states[state] = time.time()
+    return state
+
+
+def verify_and_consume_oauth_state(state_from_query, state_from_cookie):
+    """ตรวจสอบ state แบบ one-time use: ต้องตรงกันทั้ง query กับ cookie และยังไม่หมดอายุ"""
+    if not state_from_query or not state_from_cookie:
+        return False
+    if state_from_query != state_from_cookie:
+        return False
+    with _oauth_states_lock:
+        _purge_expired_states()
+        issued_at = _oauth_states.pop(state_from_query, None)
+    if issued_at is None:
+        return False
+    if time.time() - issued_at > OAUTH_STATE_TTL_SECONDS:
+        return False
+    return True
+
+
+_rate_limit_store = {}
+_rate_limit_lock = threading.Lock()
+
+
+def rate_limit(max_requests=RATE_LIMIT_MAX_REQUESTS, window_seconds=RATE_LIMIT_WINDOW_SECONDS):
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            ip = _client_ip()
+            now = time.time()
+            with _rate_limit_lock:
+                timestamps = _rate_limit_store.setdefault(ip, [])
+                timestamps[:] = [t for t in timestamps if now - t < window_seconds]
+                if len(timestamps) >= max_requests:
+                    logger.warning(f"Rate limit เกินกำหนด: IP={ip} path={request.path}")
+                    return "คำขอถี่เกินไป กรุณาลองใหม่อีกครั้งในภายหลัง", 429
+                timestamps.append(now)
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
+
+
+_verify_cooldown = {}
+_verify_cooldown_lock = threading.Lock()
+
+
+def check_and_set_cooldown(user_id):
+    now = time.time()
+    with _verify_cooldown_lock:
+        last = _verify_cooldown.get(user_id)
+        if last is not None and (now - last) < VERIFY_COOLDOWN_SECONDS:
+            return False, round(VERIFY_COOLDOWN_SECONDS - (now - last), 1)
+        _verify_cooldown[user_id] = now
+        return True, 0
+
+
+def user_has_role(guild_id, user_id, role_id):
+    try:
+        resp = requests.get(
+            f"https://discord.com/api/v10/guilds/{guild_id}/members/{user_id}",
+            headers={"Authorization": f"Bot {BOT_TOKEN}"},
+            timeout=10,
+        )
+        if resp.status_code == 404:
+            return False
+        resp.raise_for_status()
+        member = resp.json()
+        member_roles = [str(r) for r in member.get("roles", [])]
+        return str(role_id) in member_roles
+    except Exception as e:
+        logger.error(f"เช็คยศผู้ใช้ไม่สำเร็จ: {e}")
+        return None
+
+
+def log_role_granted(user_info, role_name, ip_address=None, already_verified=False):
+    if already_verified:
+        logger.info(f"ยืนยันซ้ำ (มียศอยู่แล้ว): {user_info.get('username')} ({user_info.get('id')})")
+    else:
+        logger.info(f"ให้ยศสำเร็จ: {user_info.get('username')} ({user_info.get('id')})")
+    save_verified_user(user_info, role_name, ip_address, already_verified=already_verified)
+
+    embed = discord.Embed(
+        title="🔁 ยืนยันซ้ำ (มียศอยู่แล้ว)" if already_verified else "✅ รับยศสำเร็จ",
+        description=(
+            f"<@{user_info.get('id')}> ยืนยันตัวตนซ้ำ (มียศ <@&{ROLE_ID}> อยู่แล้ว)"
+            if already_verified
+            else f"<@{user_info.get('id')}> ได้รับยศ <@&{ROLE_ID}> เรียบร้อยแล้ว"
+        ),
+        color=discord.Color.blurple() if already_verified else discord.Color.green(),
+        timestamp=datetime.datetime.utcnow(),
+    )
+    if user_info.get("avatar_url"):
+        embed.set_thumbnail(url=user_info.get("avatar_url"))
+    embed.add_field(name="ผู้ใช้", value=f"{user_info.get('username')}", inline=True)
+    embed.add_field(name="User ID", value=f"{user_info.get('id')}", inline=True)
+    embed.add_field(name="ยศ", value=role_name, inline=True)
+    if ip_address:
+        embed.add_field(name="IP Address", value=ip_address, inline=False)
+    embed.set_footer(text="ระบบยืนยันตัวตน • STIF SHOP")
+    send_log_embed(embed, channel_id=LOG_CHANNEL_ID)
+
+
+def log_error_event(context, error_message, user_info=None, ip_address=None):
+    error_message = _redact_secrets(error_message)
+    logger.error(f"[{context}] {error_message}")
+    save_error_log(context, error_message, user_info)
+
+    embed = discord.Embed(
+        title="⚠️ เกิดข้อผิดพลาด",
+        description=f"เกิดข้อผิดพลาดในขั้นตอน: **{context}**",
+        color=discord.Color.red(),
+        timestamp=datetime.datetime.utcnow(),
+    )
+    if user_info:
+        embed.add_field(name="ผู้ใช้", value=f"{user_info.get('username')} ({user_info.get('id')})", inline=False)
+    embed.add_field(name="รายละเอียด", value=f"```{error_message[:1000]}```", inline=False)
+    if ip_address:
+        embed.add_field(name="IP Address", value=ip_address, inline=False)
+    embed.set_footer(text="ระบบยืนยันตัวตน • STIF SHOP")
+    send_log_embed(embed, channel_id=ERROR_LOG_CHANNEL_ID)
+
 
 THAI_MONTHS = [
     "", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
@@ -384,39 +664,45 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       event.preventDefault();
 
       const discordWebUrl = "{{ button_url | default('https://discord.com/app') }}";
-      const ua = navigator.userAgent;
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
       const isAndroid = /Android/i.test(ua);
-      const isIOS = /iPhone|iPad|iPod/i.test(ua);
+      const isIOS = /iPhone|iPad|iPod/i.test(ua) ||
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      // Desktop -> เปิดเว็บตรงๆ
+      if (!isAndroid && !isIOS) {
+        window.location.href = discordWebUrl;
+        return;
+      }
+
+      let appOpened = false;
+
+      const onVisibilityChange = function () {
+        if (document.hidden) {
+          appOpened = true;
+        }
+      };
+      document.addEventListener('visibilitychange', onVisibilityChange);
+      window.addEventListener('pagehide', onVisibilityChange);
+
+      // ถ้าผ่านไปสักพักแล้วหน้ายังไม่ถูกซ่อน แปลว่าแอปไม่ถูกเปิด -> fallback ไปเว็บ
+      const fallbackTimer = setTimeout(function () {
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        window.removeEventListener('pagehide', onVisibilityChange);
+        if (!appOpened) {
+          window.location.href = discordWebUrl;
+        }
+      }, 2000);
 
       if (isAndroid) {
+        // ใส่ host (เช่น "-") ให้ intent URL ครบฟอร์แมต ไม่งั้นบางเครื่อง Android ไม่ยอม trigger แอป
         window.location.href =
-          'intent://#Intent;scheme=discord;package=com.discord;S.browser_fallback_url=' +
-          encodeURIComponent(discordWebUrl) + ';end';
-        return;
+          'intent://-#Intent;scheme=discord;package=com.discord;' +
+          'S.browser_fallback_url=' + encodeURIComponent(discordWebUrl) + ';end';
+      } else if (isIOS) {
+        // discord:// เปิดแอป Discord ตรงๆ ถ้าแอปถูกลงไว้ในเครื่อง
+        window.location.href = 'discord://-';
       }
-
-      if (isIOS) {
-        let fellBack = false;
-        const fallbackTimer = setTimeout(function () {
-          if (!fellBack) {
-            fellBack = true;
-            window.location.href = discordWebUrl;
-          }
-        }, 1500);
-
-        document.addEventListener('visibilitychange', function onVis() {
-          if (document.hidden) {
-            fellBack = true;
-            clearTimeout(fallbackTimer);
-            document.removeEventListener('visibilitychange', onVis);
-          }
-        });
-
-        window.location.href = 'discord://';
-        return;
-      }
-
-      window.location.href = discordWebUrl;
     }
 
     document.getElementById('discord-btn').addEventListener('click', openDiscord);
@@ -449,6 +735,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 """
 app = Flask(__name__)
 
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204
+
+
+@app.errorhandler(Exception)
+def handle_unhandled_exception(e):
+    error_detail = _redact_secrets(f"{e}\n{traceback.format_exc()}")
+    logger.error(f"Unhandled Flask exception ที่ {request.path}: {error_detail}")
+    log_error_event(f"flask:{request.path}", str(e), ip_address=_client_ip())
+    return "เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง", 500
+
 def _role_color_hex(color_int):
     if not color_int:
         return "#99AAB5"
@@ -459,6 +757,7 @@ def get_role_info(guild_id, role_id):
         resp = requests.get(
             f"https://discord.com/api/v10/guilds/{guild_id}/roles",
             headers={"Authorization": f"Bot {BOT_TOKEN}"},
+            timeout=10,
         )
         resp.raise_for_status()
         for role in resp.json():
@@ -468,7 +767,8 @@ def get_role_info(guild_id, role_id):
                     "color": _role_color_hex(role.get("color")),
                 }
     except Exception as e:
-        print("ดึงข้อมูลยศไม่สำเร็จ:", e)
+        logger.error(f"ดึงข้อมูลยศไม่สำเร็จ: {e}")
+        log_error_event("get_role_info", str(e))
     return {"name": "Verified", "color": "#57F287"}
 
 def get_role_name(guild_id, role_id):
@@ -476,12 +776,15 @@ def get_role_name(guild_id, role_id):
     return info["name"]
 
 @app.route("/")
+@rate_limit()
 def home():
+    state = generate_oauth_state()
     discord_login_url = (
         f"https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}"
         f"&redirect_uri={REDIRECT_URI}&response_type=code&scope=identify%20guilds.join"
+        f"&state={state}"
     )
-    return render_template_string(
+    html = render_template_string(
         HTML_TEMPLATE,
         title="ยืนยันตัวตน",
         subtitle="กำลังนำคุณไปหน้ายืนยันตัวตนผ่าน Discord",
@@ -490,58 +793,204 @@ def home():
         button_text="🚀 เข้าสู่ระบบผ่าน Discord",
         user=None,
     )
+    resp = make_response(html)
+    resp.set_cookie(
+        "oauth_state",
+        state,
+        max_age=OAUTH_STATE_TTL_SECONDS,
+        httponly=True,
+        secure=True,
+        samesite="Lax",
+    )
+    return resp
+
+def _client_ip():
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.remote_addr
+
 
 @app.route("/callback", strict_slashes=False)
+@rate_limit()
 def callback():
+    ip_address = _client_ip()
     code = request.args.get("code")
+    state_from_query = request.args.get("state")
+    state_from_cookie = request.cookies.get("oauth_state")
+
     if not code:
+        logger.warning(f"ไม่พบ code จาก callback (IP: {ip_address})")
+        log_error_event("callback:missing_code", "ไม่พบรหัสยืนยันตัวตน (code) ใน request", ip_address=ip_address)
         return "ไม่พบรหัสยืนยันตัวตน", 400
 
-    data = {
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "grant_type": "authorization_code",
-        "code": code,
-        "redirect_uri": REDIRECT_URI,
-    }
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    token_resp = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
-    access_token = token_resp.json().get("access_token")
-
-    if not access_token:
-        return "เกิดข้อผิดพลาด", 400
-
-    user_data = requests.get("https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {access_token}"}).json()
-    user_id = user_data.get("id")
-    username = user_data.get("username")
-    avatar_id = user_data.get("avatar")
-    avatar_url = f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_id}.png" if avatar_id else "https://cdn.discordapp.com/embed/avatars/0.png"
-
-    user_info = {"id": user_id, "username": username, "avatar_url": avatar_url}
-
-    bot_headers = {"Authorization": f"Bot {BOT_TOKEN}"}
-    add_role_url = f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}/roles/{ROLE_ID}"
-    r = requests.put(add_role_url, headers=bot_headers)
-
-    if r.status_code in [204, 200]:
-        return render_template_string(
-            HTML_TEMPLATE,
-            title="ยืนยันตัวตนสำเร็จ",
-            result_state="success",
-            result_title="ให้ยศสำเร็จ",
-            result_message="ระบบได้เพิ่มยศให้คุณเรียบร้อยแล้ว",
-            user=user_info,
-            role_name=get_role_name(GUILD_ID, ROLE_ID) or "Verified",
+    if not verify_and_consume_oauth_state(state_from_query, state_from_cookie):
+        logger.warning(f"OAuth state ไม่ถูกต้องหรือหมดอายุ (IP: {ip_address})")
+        log_error_event(
+            "callback:invalid_state",
+            "state ไม่ตรงกันหรือหมดอายุ (อาจเป็นความพยายาม CSRF หรือลิงก์เก่าที่หมดอายุ)",
+            ip_address=ip_address,
         )
-    else:
-        return render_template_string(
+        resp = make_response(render_template_string(
+            HTML_TEMPLATE,
+            title="ลิงก์หมดอายุ",
+            result_state="error",
+            result_title="ลิงก์ไม่ถูกต้อง",
+            result_message="ลิงก์ยืนยันตัวตนหมดอายุหรือไม่ถูกต้อง กรุณากดยืนยันตัวตนใหม่อีกครั้ง",
+            user=None,
+        ), 400)
+        resp.delete_cookie("oauth_state")
+        return resp
+
+    user_info = None
+
+    try:
+        data = {
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": REDIRECT_URI,
+        }
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        token_resp = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers, timeout=10)
+        token_json = token_resp.json()
+        access_token = token_json.get("access_token")
+
+        if not access_token:
+            error_detail = token_json.get("error_description") or token_json.get("error") or "ไม่ทราบสาเหตุ"
+            log_error_event("callback:token_exchange", f"แลก token ไม่สำเร็จ: {error_detail}", ip_address=ip_address)
+            resp = make_response(render_template_string(
+                HTML_TEMPLATE,
+                title="เกิดข้อผิดพลาด",
+                result_state="error",
+                result_title="เกิดข้อผิดพลาด",
+                result_message="ไม่สามารถยืนยันตัวตนได้ กรุณาลองใหม่อีกครั้ง",
+                user=None,
+            ))
+            resp.delete_cookie("oauth_state")
+            return resp
+
+        user_data = requests.get(
+            "https://discord.com/api/users/@me",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=10,
+        ).json()
+        user_id = user_data.get("id")
+        username = user_data.get("username")
+        avatar_id = user_data.get("avatar")
+        avatar_url = (
+            f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_id}.png"
+            if avatar_id
+            else "https://cdn.discordapp.com/embed/avatars/0.png"
+        )
+
+        user_info = {"id": user_id, "username": username, "avatar_url": avatar_url}
+
+        if not user_id:
+            log_error_event("callback:fetch_user", f"ดึงข้อมูลผู้ใช้ไม่สำเร็จ: {user_data}", ip_address=ip_address)
+            resp = make_response(render_template_string(
+                HTML_TEMPLATE,
+                title="เกิดข้อผิดพลาด",
+                result_state="error",
+                result_title="เกิดข้อผิดพลาด",
+                result_message="ไม่สามารถดึงข้อมูลผู้ใช้ Discord ได้",
+                user=None,
+            ))
+            resp.delete_cookie("oauth_state")
+            return resp
+
+        allowed, seconds_left = check_and_set_cooldown(user_id)
+        if not allowed:
+            logger.info(f"Cooldown: {username} ({user_id}) ต้องรออีก {seconds_left}s")
+            resp = make_response(render_template_string(
+                HTML_TEMPLATE,
+                title="กรุณารอสักครู่",
+                result_state="error",
+                result_title="กรุณารอสักครู่",
+                result_message=f"คุณเพิ่งยืนยันตัวตนไปแล้ว กรุณารออีก {int(seconds_left)} วินาทีแล้วลองใหม่",
+                user=user_info,
+            ))
+            resp.delete_cookie("oauth_state")
+            return resp
+
+        already_has_role = user_has_role(GUILD_ID, user_id, ROLE_ID)
+
+        if already_has_role:
+            role_name = get_role_name(GUILD_ID, ROLE_ID) or "Verified"
+            log_role_granted(user_info, role_name, ip_address, already_verified=True)
+            resp = make_response(render_template_string(
+                HTML_TEMPLATE,
+                title="ยืนยันตัวตนแล้ว",
+                result_state="success",
+                result_title="ยืนยันตัวตนแล้ว",
+                result_message="คุณมียศนี้อยู่แล้ว ไม่ต้องทำอะไรเพิ่ม",
+                user=user_info,
+                role_name=role_name,
+            ))
+            resp.delete_cookie("oauth_state")
+            return resp
+
+        bot_headers = {"Authorization": f"Bot {BOT_TOKEN}"}
+        add_role_url = f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}/roles/{ROLE_ID}"
+        r = requests.put(add_role_url, headers=bot_headers, timeout=10)
+
+        if r.status_code in [204, 200]:
+            role_name = get_role_name(GUILD_ID, ROLE_ID) or "Verified"
+            log_role_granted(user_info, role_name, ip_address)
+            resp = make_response(render_template_string(
+                HTML_TEMPLATE,
+                title="ยืนยันตัวตนสำเร็จ",
+                result_state="success",
+                result_title="ให้ยศสำเร็จ",
+                result_message="ระบบได้เพิ่มยศให้คุณเรียบร้อยแล้ว",
+                user=user_info,
+                role_name=role_name,
+            ))
+            resp.delete_cookie("oauth_state")
+            return resp
+        else:
+            error_detail = f"HTTP {r.status_code}: {r.text[:300]}"
+            log_error_event("callback:add_role", error_detail, user_info, ip_address)
+            resp = make_response(render_template_string(
+                HTML_TEMPLATE,
+                title="เกิดข้อผิดพลาด",
+                result_state="error",
+                result_title="เกิดข้อผิดพลาด",
+                result_message="ไม่สามารถเพิ่มยศได้ (ตรวจสอบลำดับยศของบอท)",
+                user=user_info,
+            ))
+            resp.delete_cookie("oauth_state")
+            return resp
+
+    except requests.exceptions.RequestException as e:
+        error_detail = f"เชื่อมต่อ Discord API ไม่สำเร็จ: {e}"
+        logger.error(error_detail)
+        log_error_event("callback:request_exception", error_detail, user_info, ip_address)
+        resp = make_response(render_template_string(
             HTML_TEMPLATE,
             title="เกิดข้อผิดพลาด",
             result_state="error",
             result_title="เกิดข้อผิดพลาด",
-            result_message="ไม่สามารถเพิ่มยศได้ (ตรวจสอบลำดับยศของบอท)",
+            result_message="เชื่อมต่อ Discord ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
             user=user_info,
-        )
+        ))
+        resp.delete_cookie("oauth_state")
+        return resp
+    except Exception as e:
+        error_detail = f"{e}\n{traceback.format_exc()}"
+        logger.error(f"Unhandled exception ใน /callback: {_redact_secrets(error_detail)}")
+        log_error_event("callback:unhandled_exception", str(e), user_info, ip_address)
+        resp = make_response(render_template_string(
+            HTML_TEMPLATE,
+            title="เกิดข้อผิดพลาด",
+            result_state="error",
+            result_title="เกิดข้อผิดพลาด",
+            result_message="เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง",
+            user=user_info,
+        ))
+        resp.delete_cookie("oauth_state")
+        return resp
 
 
 class VerifyView(discord.ui.View):
@@ -550,7 +999,7 @@ class VerifyView(discord.ui.View):
         self.add_item(
             discord.ui.Button(
                 label="ยืนยันตัวตนเข้าดิส",
-                url="https://discord.com/oauth2/authorize?client_id=1292567654405771334&response_type=code&redirect_uri=https%3A%2F%2Fsdfsafasfasfsafasf.onrender.com%2Fcallback&scope=identify+guilds.join",
+                url=f"https://discord.com/oauth2/authorize?client_id=1292567654405771334&response_type=code&redirect_uri=https%3A%2F%2Fsdfsafasfasfsafasf.onrender.com%2Fcallback&scope=identify+guilds.join",
                 style=discord.ButtonStyle.link,
                 emoji="<a:emoji_125:1283873278129213471>",
             )
@@ -558,16 +1007,52 @@ class VerifyView(discord.ui.View):
 
 @bot.event
 async def on_ready():
-    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    logger.info(f"Logged in as {bot.user} (ID: {bot.user.id})")
+
+    if LOG_CHANNEL_ID:
+        channel = bot.get_channel(LOG_CHANNEL_ID)
+        if channel is None:
+            logger.warning(f"ไม่พบ LOG_CHANNEL_ID={LOG_CHANNEL_ID} (บอทอาจไม่มีสิทธิ์เข้าถึงช่องนี้)")
+        else:
+            logger.info(f"ตั้งค่า log channel (รับยศ) เรียบร้อย: #{channel.name} ({LOG_CHANNEL_ID})")
+    else:
+        logger.warning("ยังไม่ได้ตั้งค่า LOG_CHANNEL_ID จะไม่มีการส่ง log การรับยศเข้า Discord channel")
+
+    if ERROR_LOG_CHANNEL_ID:
+        err_channel = bot.get_channel(ERROR_LOG_CHANNEL_ID)
+        if err_channel is None:
+            logger.warning(f"ไม่พบ ERROR_LOG_CHANNEL_ID={ERROR_LOG_CHANNEL_ID} (บอทอาจไม่มีสิทธิ์เข้าถึงช่องนี้)")
+        else:
+            logger.info(f"ตั้งค่า error log channel เรียบร้อย: #{err_channel.name} ({ERROR_LOG_CHANNEL_ID})")
+    else:
+        logger.warning("ยังไม่ได้ตั้งค่า ERROR_LOG_CHANNEL_ID จะไม่มีการส่ง log ข้อผิดพลาดเข้า Discord channel")
 
     activity = discord.Streaming(name="อยากดูหี", url="https://www.twitch.tv/Jxycop_x")
     await bot.change_presence(status=discord.Status.idle, activity=activity)
 
     try:
         synced = await bot.tree.sync()
-        print(f"Synced {len(synced)} command(s).")
+        logger.info(f"Synced {len(synced)} command(s).")
     except Exception as e:
-        print(e)
+        logger.error(f"Sync command ไม่สำเร็จ: {e}")
+        log_error_event("bot:sync_commands", str(e))
+
+
+@bot.event
+async def on_error(event_method, *args, **kwargs):
+    error_detail = traceback.format_exc()
+    logger.error(f"เกิดข้อผิดพลาดใน event '{event_method}': {error_detail}")
+    log_error_event(f"discord_event:{event_method}", error_detail)
+
+
+@bot.tree.error
+async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    logger.error(f"Slash command error ({interaction.command}): {error}")
+    log_error_event(f"slash_command:{interaction.command}", str(error))
+    if interaction.response.is_done():
+        await interaction.followup.send("❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", ephemeral=True)
+    else:
+        await interaction.response.send_message("❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", ephemeral=True)
 
 
 
@@ -590,11 +1075,31 @@ async def setup(interaction: discord.Interaction):
     await interaction.channel.send(embed=embed, view=VerifyView())
 
 def run_web():
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", "5000"))
+    try:
+        from waitress import serve
+        logger.info(f"เริ่ม production server (waitress) ที่พอร์ต {port}")
+        serve(app, host="0.0.0.0", port=port, threads=8)
+    except ImportError:
+        logger.warning(
+            "ไม่พบ waitress (pip install waitress) — จะ fallback ไปใช้ Flask dev server แทน "
+            "ไม่แนะนำให้ใช้ตัวนี้ใน production เพราะรับโหลดพร้อมกันหลายคนไม่ได้ดี"
+        )
+        try:
+            app.run(host="0.0.0.0", port=port)
+        except Exception as e:
+            logger.error(f"Flask dev server ล่ม: {e}\n{traceback.format_exc()}")
+    except Exception as e:
+        logger.error(f"Waitress server ล่ม: {e}\n{traceback.format_exc()}")
+
 
 if __name__ == "__main__":
+    logger.info("กำลังเริ่มระบบ...")
     t = threading.Thread(target=run_web)
     t.daemon = True
     t.start()
-    
-    bot.run(BOT_TOKEN)
+
+    try:
+        bot.run(BOT_TOKEN)
+    except Exception as e:
+        logger.error(f"บอทหยุดทำงานเนื่องจากข้อผิดพลาด: {e}\n{traceback.format_exc()}")
