@@ -48,12 +48,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg-0:#050508;
-    --violet:#8b5cf6;
-    --magenta:#ec4899;
-    --cyan:#22d3ee;
-    --green:#23a55a;
-    --red:#ED4245;
+    --bg-0:#000000;
+    --card-bg:#111214;
+    --border-color:rgba(255, 255, 255, 0.08);
     --text-hi:#ffffff;
     --text-lo:#949ba4;
   }
@@ -62,7 +59,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     height:100%;
     min-height:100dvh;
     background:var(--bg-0);
-    overflow:hidden;
+    overflow-x:hidden;
+    overflow-y:auto;
   }
   body{
     font-family:'Sarabun','Kanit',sans-serif;
@@ -72,216 +70,338 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     position:relative;
     isolation:isolate;
     min-height:100dvh;
-    padding:20px 16px;
+    padding:24px 16px;
   }
-
+ 
   .ambient-bg{
     position:fixed;inset:0;pointer-events:none;z-index:1;
     background:
-      radial-gradient(circle at 15% 15%, rgba(139, 92, 246, 0.15), transparent 45%),
-      radial-gradient(circle at 85% 85%, rgba(34, 211, 238, 0.12), transparent 45%),
-      radial-gradient(circle at 50% 50%, rgba(35, 165, 90, 0.1), transparent 55%);
-    transition:background 0.6s ease;
+      radial-gradient(circle at 50% 0%, rgba(30, 30, 35, 0.25), transparent 60%),
+      radial-gradient(circle at 50% 100%, rgba(10, 10, 15, 0.4), transparent 60%);
+    transition:background 0.8s ease;
   }
   body.phase-success .ambient-bg{
     background:
-      radial-gradient(circle at 15% 15%, rgba(35, 165, 90, 0.18), transparent 45%),
-      radial-gradient(circle at 85% 85%, rgba(34, 211, 238, 0.15), transparent 45%),
-      radial-gradient(circle at 50% 50%, rgba(35, 165, 90, 0.12), transparent 55%);
+      radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.12), transparent 60%),
+      radial-gradient(circle at 50% 100%, rgba(10, 10, 15, 0.4), transparent 60%);
   }
-
+ 
   .noise{
     position:fixed;inset:0;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
     mix-blend-mode:overlay;pointer-events:none;z-index:2;
   }
-
-  .card-wrap{ position:relative; z-index:10; width:100%; max-width:420px; }
+ 
+  .card-wrap{ position:relative; z-index:10; width:100%; max-width:400px; margin:auto; }
   .card-glow{
-    position:absolute; inset:-2px; border-radius:24px;
-    background:linear-gradient(135deg, rgba(139,92,246,0.6), rgba(34,211,238,0.4), rgba(236,72,153,0.5));
-    filter:blur(16px);
+    position:absolute; inset:-2px; border-radius:26px;
+    background:linear-gradient(135deg, rgba(255,255,255,0.1), rgba(50,50,60,0.05));
+    filter:blur(24px);
     opacity:0.5;
     z-index:-1;
     animation:glowPulse 6s ease-in-out infinite;
-    transition:background 0.6s ease;
+    transition:background 0.8s ease;
   }
   @keyframes glowPulse{
-    0%,100%{ opacity:0.4; transform:scale(1); }
-    50%{ opacity:0.7; transform:scale(1.02); }
+    0%,100%{ opacity:0.3; transform:scale(1); }
+    50%{ opacity:0.6; transform:scale(1.02); }
   }
   body.phase-success .card-glow{
-    background:linear-gradient(135deg, rgba(35,165,90,0.6), rgba(34,211,238,0.4), rgba(35,165,90,0.5));
+    background:linear-gradient(135deg, rgba(16,185,129,0.3), rgba(255,255,255,0.05));
   }
-
+ 
   .card{
     position:relative;
     width:100%;
-    padding:26px 22px 24px;
-    background:linear-gradient(180deg, rgba(14, 24, 22, 0.95), rgba(8, 16, 15, 0.98));
-    border:1px solid rgba(35, 165, 90, 0.35);
-    border-radius:22px;
-    backdrop-filter:blur(30px);
-    -webkit-backdrop-filter:blur(30px);
-    box-shadow: 0 24px 60px -15px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.12);
+    padding:24px 20px;
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
+    border-radius:20px;
+    box-shadow: 0 30px 70px -15px rgba(0,0,0,0.95);
     text-align:center;
-    animation:cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation:cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
     overflow: hidden;
   }
-  @keyframes cardIn{ from{opacity:0; transform:translateY(16px) scale(0.96);} to{opacity:1; transform:translateY(0) scale(1);} }
-
+  @keyframes cardIn{ from{opacity:0; transform:translateY(20px) scale(0.95);} to{opacity:1; transform:translateY(0) scale(1);} }
+ 
   .phase{ display:none; position:relative; z-index:3; }
-  .phase.active{ display:block; animation:phaseIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  @keyframes phaseIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
-
+  .phase.active{ display:block; animation:phaseIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  @keyframes phaseIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+ 
+  /* --- Dual-Ring Loader --- */
   .loader{
-    position:relative; width:92px; height:92px; margin:0 auto 18px;
+    position:relative; width:88px; height:88px; margin:0 auto 22px;
     display:flex; align-items:center; justify-content:center;
   }
-  .sonar{
-    position:absolute; inset:0; border-radius:50%; border:1.5px solid var(--cyan); opacity:0;
-    animation:sonar 2.8s cubic-bezier(.25,.7,.4,1) infinite;
+  .loader-ring-outer {
+    position: absolute; inset: 0; border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: #ffffff;
+    border-right-color: rgba(255, 255, 255, 0.2);
+    animation: spinClockwise 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
   }
-  .sonar.s2{ animation-delay:0.7s; border-color:var(--violet); }
-  .sonar.s3{ animation-delay:1.4s; border-color:var(--magenta); }
-  @keyframes sonar{
-    0%{ transform:scale(0.4); opacity:0; }
-    12%{ opacity:0.9; }
-    100%{ transform:scale(1.15); opacity:0; }
+  .loader-ring-inner {
+    position: absolute; inset: 12px; border-radius: 50%;
+    border: 2px solid transparent;
+    border-bottom-color: #a1a1aa;
+    border-left-color: rgba(161, 161, 170, 0.2);
+    animation: spinCounter 0.9s linear infinite;
   }
-  .halo{
-    position:absolute; inset:6%; border-radius:50%;
-    background:radial-gradient(circle at 30% 28%, rgba(139,92,246,0.95), transparent 55%),
-               radial-gradient(circle at 72% 35%, rgba(34,211,238,0.9), transparent 55%),
-               radial-gradient(circle at 50% 78%, rgba(236,72,153,0.85), transparent 55%);
-    filter:blur(10px); opacity:0.65;
+  @keyframes spinClockwise { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  @keyframes spinCounter { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
+  .loader-core {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+    animation: pulseCore 1.5s ease-in-out infinite alternate;
   }
-  .glass-circle{
-    position:absolute; inset:14%; border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.16), rgba(10,10,16,0.6) 60%);
-    border:1px solid rgba(255,255,255,0.22); backdrop-filter:blur(6px);
-  }
-  .core{
-    position:absolute; top:50%; left:50%; width:18px; height:18px; margin:-9px 0 0 -9px;
-    clip-path:polygon(50% 0%, 90% 25%, 100% 70%, 50% 100%, 0% 70%, 10% 25%);
-    background:linear-gradient(160deg, #ffffff 0%, #c9b8ff 22%, var(--violet) 55%, var(--cyan) 100%);
-    box-shadow:0 0 20px 6px rgba(139,92,246,0.8);
-  }
-
-  .eyebrow{ font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--cyan); margin-bottom: 6px; }
-  .title{
-    font-family:'Kanit',sans-serif; font-weight:600; font-size:1.15rem;
-    background:linear-gradient(90deg, #c4b5fd, #67e8f9 55%, #f5a8d0);
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-    margin-bottom:8px;
-  }
-  .subtitle{ font-size:0.8rem; line-height:1.5; color:var(--text-lo); font-weight:300; margin-bottom:16px; }
+  @keyframes pulseCore { 0% { transform: scale(0.7); opacity: 0.5; } 100% { transform: scale(1.25); opacity: 1; } }
+ 
+  .eyebrow{ font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--text-lo); margin-bottom: 6px; }
+  .title{ font-family:'Kanit',sans-serif; font-weight:600; font-size:1.2rem; color: #ffffff; margin-bottom:6px; }
+  .subtitle{ font-size:0.82rem; line-height:1.6; color:var(--text-lo); font-weight:300; margin-bottom:18px; }
+  
   .status-line{
     display:flex; align-items:center; justify-content:center; gap:8px;
-    width:100%; padding:10px 14px; border-radius:12px;
-    border:1px solid rgba(255,255,255,0.08);
-    background:linear-gradient(135deg, rgba(139,92,246,0.2), rgba(34,211,238,0.15));
-    color:var(--text-hi); font-size:0.8rem; font-weight:500;
+    width:100%; padding:11px 16px; border-radius:14px;
+    border:1px solid rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.02);
+    color:var(--text-hi); font-size:0.8rem; font-weight:400;
   }
   .status-line .dots span{
-    display:inline-block; width:4px; height:4px; margin-left:2px; border-radius:50%; background:var(--cyan);
+    display:inline-block; width:4px; height:4px; margin-left:2px; border-radius:50%; background:#ffffff;
     animation:bounce 1.2s ease-in-out infinite;
   }
   .status-line .dots span:nth-child(2){animation-delay:0.15s;}
   .status-line .dots span:nth-child(3){animation-delay:0.3s;}
-  @keyframes bounce{ 0%,80%,100%{transform:translateY(0); opacity:0.5;} 40%{transform:translateY(-4px); opacity:1;} }
+  @keyframes bounce{ 0%,80%,100%{transform:translateY(0); opacity:0.3;} 40%{transform:translateY(-4px); opacity:1;} }
+ 
+  /* --- Discord Exact Profile Modal UI --- */
+  .discord-profile-modal {
+    background: #18191c;
+    border-radius: 12px;
+    overflow: hidden;
+    text-align: left;
+    margin-bottom: 16px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+ 
+  .discord-banner {
+    width: 100%;
+    height: 100px;
+    background: #3c352c url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop') center/cover;
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding: 10px;
+  }
+ 
+  .banner-status-badge {
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    color: #dbdee1;
+    font-weight: 500;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .banner-status-badge svg { width: 10px; height: 10px; fill: #ffffff; }
 
-  .discord-profile-card {
-    background: #0b0c0e; border-radius: 16px; overflow: hidden;
-    text-align: left; margin-bottom: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  .discord-body {
+    padding: 0 16px 16px 16px;
+    background: #111214;
+    position: relative;
   }
 
-  .discord-banner-area {
-    width: 100%; height: 72px;
-    background: linear-gradient(135deg, #111214, #000000);
-    position: relative; display: flex; justify-content: flex-end; align-items: flex-start;
-    padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.04);
+  .profile-avatar-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: -38px;
+    margin-bottom: 10px;
   }
 
-  .status-bubble {
-    background: rgba(17, 18, 20, 0.85);
-    border: 1px solid rgba(35, 165, 90, 0.3);
-    padding: 5px 12px; border-radius: 20px;
-    display: flex; align-items: center; gap: 6px;
-    font-size: 0.75rem; font-weight: 500; color: #e2e8f0;
-    backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-  }
-  .status-bubble svg { width: 13px; height: 13px; fill: #23a55a; }
-
-  .discord-content-area { padding: 0 16px 16px 16px; position: relative; }
-
-  .discord-avatar-container { display: flex; align-items: flex-end; margin-top: -34px; margin-bottom: 10px; }
-  .discord-avatar-wrapper {
-    position: relative; width: 62px; height: 62px; border-radius: 50%;
-    background: #0b0c0e; padding: 3px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-  }
-  .discord-user-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-  .avatar-status-dot {
-    position: absolute; bottom: 3px; right: 3px; width: 14px; height: 14px;
-    background: #23a55a; border: 3px solid #0b0c0e; border-radius: 50%;
+  .avatar-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
   }
 
-  .display-name-main {
-    font-family: 'Kanit', sans-serif; font-size: 1.15rem; font-weight: 700;
-    color: #ffffff; line-height: 1.2; margin-bottom: 3px;
-  }
-  .user-handle-sub {
-    font-size: 0.78rem; color: var(--text-lo); margin-bottom: 12px;
-    display: flex; align-items: center; gap: 6px; font-weight: 400;
-  }
-
-  .divider-line { height: 1px; background: rgba(255, 255, 255, 0.07); margin: 10px 0; }
-
-  .profile-info-block { font-size: 0.76rem; color: var(--text-lo); margin-bottom: 10px; }
-  .profile-info-block .label {
-    font-weight: 600; text-transform: uppercase; font-size: 0.65rem;
-    letter-spacing: 0.8px; margin-bottom: 4px; color: #80848e;
+  .avatar-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 6px solid #111214;
   }
 
-  .roles-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .profile-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .action-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #2b2d31;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #dbdee1;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .action-icon-btn:hover { background: #35373c; }
+  .action-icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+  .profile-name {
+    font-family: 'Kanit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #f2f3f5;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .profile-handle-row {
+    font-size: 0.78rem;
+    color: #b5bac1;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .badge-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .discord-badge {
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* --- Roles Style --- */
+  .roles-section {
+    margin-bottom: 12px;
+  }
+  .roles-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #949ba4;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+    text-align: left;
+  }
+  .roles-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
   .role-tag {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: #18191c; padding: 4px 10px; border-radius: 8px;
-    font-size: 0.76rem; font-weight: 500; color: #f2f3f5;
-    border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #2b2d31;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #dbdee1;
   }
-  .role-dot { width: 8px; height: 8px; border-radius: 50%; background: #57F287; box-shadow: 0 0 8px #57F287; }
-  .role-remove-icon { width: 12px; height: 12px; fill: #949ba4; cursor: pointer; transition: fill 0.2s; }
-  .role-remove-icon:hover { fill: #ffffff; }
+  .role-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #5865f2;
+  }
 
-  .result-message { margin-bottom: 16px; color: #b5bac1; font-size: 0.86rem; font-weight: 400; }
+  .main-chat-btn {
+    width: 100%;
+    background: #5865f2;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    margin-bottom: 16px;
+    font-family: 'Sarabun', sans-serif;
+  }
+  .main-chat-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+  .divider {
+    height: 1px;
+    background: #232428;
+    margin: 12px 0;
+  }
+
+  .info-section-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #949ba4;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+    text-align: left;
+  }
+
+  .info-section-value {
+    font-size: 0.82rem;
+    color: #dbdee1;
+    text-align: left;
+    margin-bottom: 12px;
+  }
+
+  .connections-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #b5bac1;
+    text-align: left;
+    margin-bottom: 12px;
+  }
+  .connections-placeholder svg { width: 14px; height: 14px; fill: #b5bac1; }
+
+  .note-box {
+    background: #111214;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 0.78rem;
+    color: #949ba4;
+    text-align: left;
+    border: 1px dashed transparent;
+  }
 
   .result-btn {
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    width: 100%; color: #fff; font-weight: 600; font-size: 0.95rem; padding: 12px;
-    border-radius: 12px; text-decoration: none; border: none; cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 100%; color: #000000; font-weight: 600; font-size: 0.95rem; padding: 12px;
+    border-radius: 10px; text-decoration: none; border: none; cursor: pointer;
+    transition: all 0.25s ease;
     font-family: 'Sarabun', 'Kanit', sans-serif;
   }
-  .btn-success {
-    background: linear-gradient(135deg, #23a55a, #1f934e);
-    box-shadow: 0 6px 20px rgba(35, 165, 90, 0.4);
-  }
-  .btn-success:hover {
-    background: linear-gradient(135deg, #26b763, #22a55a);
-    transform: translateY(-2px); box-shadow: 0 8px 25px rgba(35, 165, 90, 0.6);
-  }
-  .btn-retry {
-    background: linear-gradient(135deg, #ED4245, #c93639);
-    box-shadow: 0 6px 20px rgba(237, 66, 69, 0.4);
-  }
-  .btn-retry:hover {
-    background: linear-gradient(135deg, #f05457, #ED4245);
-    transform: translateY(-2px); box-shadow: 0 8px 25px rgba(237, 66, 69, 0.6);
-  }
-  .result-btn:active { transform: scale(0.98); }
+  .btn-success { background: #ffffff; box-shadow: 0 4px 20px rgba(255,255,255,0.2); }
+  .btn-success:hover { background: #e2e2e2; transform: translateY(-1px); }
 
   @keyframes confettiFall{ 0%{transform:translateY(-20px) rotate(0deg); opacity:1;} 100%{transform:translateY(240px) rotate(360deg); opacity:0;} }
   .confetti{ position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:0; }
@@ -290,23 +410,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </style>
 </head>
 <body class="phase-checking">
-
+ 
   <div class="ambient-bg"></div>
   <div class="noise"></div>
-
+ 
   <div class="card-wrap">
     <div class="card-glow"></div>
     <div class="card">
-
+ 
+      <!-- PHASE 1: LOADING -->
       <div class="phase active" id="phase-checking">
         <div class="eyebrow">ระบบยืนยันตัวตน</div>
         <div class="loader">
-          <div class="sonar s1"></div>
-          <div class="sonar s2"></div>
-          <div class="sonar s3"></div>
-          <div class="halo"></div>
-          <div class="glass-circle"></div>
-          <div class="core"></div>
+          <div class="loader-ring-outer"></div>
+          <div class="loader-ring-inner"></div>
+          <div class="loader-core"></div>
         </div>
         <div class="title">{{ title | default('กำลังตรวจสอบข้อมูล') }}</div>
         <div class="subtitle">
@@ -317,124 +435,149 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <span class="dots"><span></span><span></span><span></span></span>
         </div>
       </div>
-
+ 
+      <!-- PHASE 2: RESULT -->
       <div class="phase" id="phase-result">
         <div class="confetti" id="confetti"></div>
-
-        <div class="discord-profile-card">
-          <div class="discord-banner-area">
-            <div class="status-bubble">
+ 
+        <div class="discord-profile-modal">
+          <div class="discord-banner">
+            <div class="banner-status-badge">
               <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              <span>ยืนยันตัวตนแล้ว</span>
+              <span>คู่หู NPC ที่ชื่นชอบ</span>
             </div>
           </div>
-
-          <div class="discord-content-area">
-            <div class="discord-avatar-container">
-              <div class="discord-avatar-wrapper">
-                <img src="{{ user.avatar_url if user and user.avatar_url else 'https://cdn.discordapp.com/embed/avatars/0.png' }}" alt="Avatar" class="discord-user-avatar">
-                <div class="avatar-status-dot"></div>
+ 
+          <div class="discord-body">
+            <div class="profile-avatar-row">
+              <div class="avatar-container">
+                <img src="{{ user.avatar_url if user and user.avatar_url else 'https://cdn.discordapp.com/embed/avatars/0.png' }}" alt="Avatar" class="avatar-img">
+              </div>
+              <div class="profile-actions">
+                <button class="action-icon-btn" title="ข้อความ">
+                  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.6 1.38 5.11L2 22l4.89-1.38C8.4 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.44 0-2.8-.38-3.97-1.05l-.28-.17-3.02.85.86-2.95-.18-.3A7.95 7.95 0 014 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/></svg>
+                </button>
+                <button class="action-icon-btn" title="เพิ่มเพื่อน">
+                  <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </button>
+                <button class="action-icon-btn" title="เพิ่มเติม">
+                  <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                </button>
               </div>
             </div>
-
-            <div class="display-name-main">{{ user.username if user and user.username else 'jxycopstepmod' }}</div>
-            <div class="user-handle-sub">
-              <span>@{{ user.username if user and user.username else 'jxycopstepmod' }}</span>
+ 
+            <div class="profile-name">{{ user.username if user and user.username else 'ไม่เหมาะสมกับผู้ดีและสตรีหัวสูง' }}</div>
+            <div class="profile-handle-row">
+              <span>{{ user.username if user and user.username else 'jxycopstepmod' }}</span>
               <span>•</span>
-              <span>ID: {{ user.id if user and user.id else '1183718234806038563' }}</span>
+              <span style="color: #00a8fc; cursor: pointer;">เพิ่มสรรพนาม</span>
+              <span>•</span>
+              <span style="color: #00a8fc; cursor: pointer;">แท็กเซิร์ฟเวอร์ ▾</span>
             </div>
-
-            <div class="divider-line"></div>
-
-            <div class="profile-info-block">
-              <div class="label">บทบาท</div>
+ 
+            <div class="badge-row">
+              <span class="discord-badge" title="HypeSquad Bravery">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#fa777c"><path d="M12 2L1 21h22L12 2zm0 3.99L18.53 19H5.47L12 5.99z"/></svg>
+              </span>
+              <span class="discord-badge" title="Active Developer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#5865f2"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM8.5 15H7v-4.5C7 9.67 7.67 9 8.5 9h1.5v1.5H8.5V15zm8 0h-1.5v-1.5h-1.5V12h3V15z"/></svg>
+              </span>
+            </div>
+ 
+            <!-- ส่วนแสดงยศ (Roles) -->
+            <div class="roles-section">
+              <div class="roles-title">บทบาท</div>
               <div class="roles-container">
                 <div class="role-tag">
-                  <span class="role-dot"></span>
-                  <span>User</span>
-                  <svg class="role-remove-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                  <span class="role-dot" style="background: #10b981;"></span>
+                  <span>Verified User</span>
+                </div>
+                <div class="role-tag">
+                  <span class="role-dot" style="background: #5865f2;"></span>
+                  <span>Member</span>
                 </div>
               </div>
             </div>
-
-            <div class="profile-info-block" style="margin-bottom: 0; margin-top: 10px;">
-              <div class="label" style="display:flex; align-items:center; gap:5px; color: #b5bac1; font-size: 0.72rem; text-transform: none; font-weight: 500;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
-                ยืนยันตัวตนเมื่อ วันนี้
-              </div>
+ 
+            <button class="main-chat-btn">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.6 1.38 5.11L2 22l4.89-1.38C8.4 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.44 0-2.8-.38-3.97-1.05l-.28-.17-3.02.85.86-2.95-.18-.3A7.95 7.95 0 014 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/></svg>
+              ข้อความ
+            </button>
+ 
+            <div class="divider"></div>
+ 
+            <div class="info-section-title">เป็นสมาชิกตั้งแต่</div>
+            <div class="info-section-value">11 ธ.ค. 2566</div>
+ 
+            <div class="info-section-title">การเชื่อมต่อ</div>
+            <div class="connections-placeholder">
+              <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              เพิ่มการเชื่อมต่อ
             </div>
-
+ 
+            <div class="info-section-title">หมายเหตุ (มีเฉพาะคุณที่เห็น)</div>
+            <div class="note-box">คลิกเพื่อเพิ่มหมายเหตุ</div>
+ 
           </div>
         </div>
-
-        <p class="result-message">{{ result_message | default('ระบบได้เพิ่มยศให้คุณเรียบร้อยแล้ว') }}</p>
-
+ 
         <a href="{{ button_url | default('https://discord.com/app') }}"
            id="discord-btn"
-           class="result-btn {{ 'btn-success' if (result_state | default('success')) == 'success' else 'btn-retry' }}">
+           class="result-btn btn-success">
           {{ button_text | default('กลับไปที่ Discord') }}
         </a>
       </div>
-
+ 
     </div>
   </div>
-
+ 
   <script>
     function openDiscord(event) {
       event.preventDefault();
-
       const discordWebUrl = "{{ button_url | default('https://discord.com/app') }}";
-      const ua = navigator.userAgent;
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
       const isAndroid = /Android/i.test(ua);
-      const isIOS = /iPhone|iPad|iPod/i.test(ua);
-
+      const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+ 
+      if (!isAndroid && !isIOS) {
+        window.location.href = discordWebUrl;
+        return;
+      }
+ 
+      let appOpened = false;
+      const onVisibilityChange = function () { if (document.hidden) appOpened = true; };
+      document.addEventListener('visibilitychange', onVisibilityChange);
+      window.addEventListener('pagehide', onVisibilityChange);
+ 
+      setTimeout(function () {
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        window.removeEventListener('pagehide', onVisibilityChange);
+        if (!appOpened) window.location.href = discordWebUrl;
+      }, 2000);
+ 
       if (isAndroid) {
-        window.location.href =
-          'intent://#Intent;scheme=discord;package=com.discord;S.browser_fallback_url=' +
-          encodeURIComponent(discordWebUrl) + ';end';
-        return;
+        window.location.href = 'intent://-#Intent;scheme=discord;package=com.discord;S.browser_fallback_url=' + encodeURIComponent(discordWebUrl) + ';end';
+      } else if (isIOS) {
+        window.location.href = 'discord://-';
       }
-
-      if (isIOS) {
-        let fellBack = false;
-        const fallbackTimer = setTimeout(function () {
-          if (!fellBack) {
-            fellBack = true;
-            window.location.href = discordWebUrl;
-          }
-        }, 1500);
-
-        document.addEventListener('visibilitychange', function onVis() {
-          if (document.hidden) {
-            fellBack = true;
-            clearTimeout(fallbackTimer);
-            document.removeEventListener('visibilitychange', onVis);
-          }
-        });
-
-        window.location.href = 'discord://';
-        return;
-      }
-
-      window.location.href = discordWebUrl;
     }
-
+ 
     document.getElementById('discord-btn').addEventListener('click', openDiscord);
-
+ 
     function spawnConfetti() {
-      const colors = ['#57F287', '#8b5cf6', '#22d3ee', '#ffffff'];
+      const colors = ['#ffffff', '#5865f2', '#fa777c', '#33333d'];
       const container = document.getElementById('confetti');
       if (!container) return;
-      for (let i = 0; i < 28; i++) {
+      for (let i = 0; i < 30; i++) {
         const piece = document.createElement('span');
         piece.style.left = Math.random() * 100 + '%';
         piece.style.background = colors[Math.floor(Math.random() * colors.length)];
         piece.style.animationDelay = (Math.random() * 0.4) + 's';
-        piece.style.animationDuration = (2 + Math.random() * 0.8) + 's';
+        piece.style.animationDuration = (2.2 + Math.random() * 0.8) + 's';
         container.appendChild(piece);
       }
     }
-
+ 
     setTimeout(function () {
       document.getElementById('phase-checking').classList.remove('active');
       document.getElementById('phase-result').classList.add('active');
@@ -443,7 +586,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       spawnConfetti();
     }, 3500);
   </script>
-
+ 
 </body>
 </html>
 """
