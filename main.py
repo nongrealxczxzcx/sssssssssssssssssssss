@@ -802,21 +802,42 @@ def get_role_info(guild_id, role_id):
         print("ดึงข้อมูลยศไม่สำเร็จ:", e)
     return {"name": "Verified", "color": "#23a559"}
 
-def send_webhook_log(webhook_url, title, description, color):
+def send_webhook_log(webhook_url, title, description, color, avatar_url=None,
+                      author_name=None, fields=None, footer_text="STIF SHOP • ระบบยืนยันตัวตน"):
     if not webhook_url or webhook_url.startswith("ใส่_"):
+        print("[webhook] skipped: no url configured")
         return
     try:
-        payload = {
-            "embeds": [{
-                "title": title,
-                "description": description,
-                "color": color,
-                "timestamp": datetime.datetime.utcnow().isoformat()
-            }]
+        embed = {
+            "title": title,
+            "description": description,
+            "color": color,
+            "timestamp": datetime.datetime.utcnow().isoformat(),
         }
-        requests.post(webhook_url, json=payload)
+        if author_name:
+            embed["author"] = {"name": author_name}
+            if avatar_url:
+                embed["author"]["icon_url"] = avatar_url
+ 
+        if avatar_url:
+            embed["thumbnail"] = {"url": avatar_url}
+ 
+        if fields:
+            embed["fields"] = fields
+ 
+        if footer_text:
+            embed["footer"] = {"text": footer_text}
+ 
+        payload = {"embeds": [embed]}
+        resp = requests.post(webhook_url, json=payload, timeout=10)
+
+        if resp.status_code != 204:
+            print(f"[webhook] FAILED status={resp.status_code} body={resp.text}")
+        else:
+            print("[webhook] sent ok")
+ 
     except Exception as e:
-        print("ส่ง Webhook Log ไม่สำเร็จ:", e)
+        print("[webhook] exception:", e)
 
 @app.route("/")
 def home():
