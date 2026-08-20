@@ -900,9 +900,10 @@ def callback():
                 
                 send_webhook_log(
                     WEBHOOK_SUCCESS, 
-                    "✅ มีผู้ยืนยันตัวตนสำเร็จ", 
-                    f"**ผู้ใช้งาน:** {global_name or username} (`@{username}`)\n**ID:** {user_id}\n**ยศที่ได้รับ:** {role_info['name']}", 
-                    2318169
+                    "- `✅` **มีผู้ยืนยันตัวตนสำเร็จ**", 
+                    f"- **ผู้ใช้งาน:** **{global_name or username}** (`@{username}`)\n**ID:** **{user_id}**\n**ยศที่ได้รับ:** {role_info['name']}", 
+                    2318169,
+                    avatar_url=avatar_url
                 )
 
         return render_template_string(
