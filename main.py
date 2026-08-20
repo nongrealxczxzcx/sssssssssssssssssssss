@@ -22,8 +22,7 @@ ROLE_ID = 1211224793060478976
 
 if not BOT_TOKEN or not CLIENT_SECRET:
     raise RuntimeError(
-        "กรุณาตั้งค่า BOT_TOKEN และ CLIENT_SECRET เป็น environment variable ก่อนรัน "
-        "(ห้าม hardcode ไว้ในไฟล์ เพราะเป็นข้อมูลลับที่รั่วไหลได้ง่ายมาก)"
+        "กรุณาตั้งค่า BOT_TOKEN และ CLIENT_SECRET เป็น environment variable ก่อนรัน"
     )
 
 THAI_MONTHS = [
@@ -31,11 +30,9 @@ THAI_MONTHS = [
     "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
 ]
  
- 
 def thai_date(dt=None):
     dt = dt or datetime.datetime.utcnow()
     return f"{dt.day} {THAI_MONTHS[dt.month]} {dt.year + 543}"
- 
  
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="th">
@@ -128,7 +125,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .phase.active{ display:block; animation:phaseIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
   @keyframes phaseIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
  
-  /* --- Dual-Ring Loader --- */
   .loader{
     position:relative; width:88px; height:88px; margin:0 auto 22px;
     display:flex; align-items:center; justify-content:center;
@@ -176,7 +172,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .status-line .dots span:nth-child(3){animation-delay:0.3s;}
   @keyframes bounce{ 0%,80%,100%{transform:translateY(0); opacity:0.3;} 40%{transform:translateY(-4px); opacity:1;} }
  
-  /* --- Discord Exact Profile Modal UI --- */
   .discord-profile-modal {
     background: #18191c;
     border-radius: 12px;
@@ -294,7 +289,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     justify-content: center;
   }
 
-  /* --- Roles Style --- */
   .roles-section {
     margin-bottom: 12px;
   }
@@ -466,9 +460,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               </div>
             </div>
  
-            <div class="profile-name">{{ user.username if user and user.username else 'ไม่เหมาะสมกับผู้ดีและสตรีหัวสูง' }}</div>
+            <div class="profile-name">{{ user.username if user and user.username else 'ผู้ใช้งานทั่วไป' }}</div>
             <div class="profile-handle-row">
-              <span>{{ user.username if user and user.username else 'jxycopstepmod' }}</span>
+              <span>{{ user.username if user and user.username else 'username' }}</span>
               <span>•</span>
               <span style="color: #00a8fc; cursor: pointer;">เพิ่มสรรพนาม</span>
               <span>•</span>
@@ -476,25 +470,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
  
             <div class="badge-row">
-              <span class="discord-badge" title="HypeSquad Bravery">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#fa777c"><path d="M12 2L1 21h22L12 2zm0 3.99L18.53 19H5.47L12 5.99z"/></svg>
-              </span>
               <span class="discord-badge" title="Active Developer">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="#5865f2"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM8.5 15H7v-4.5C7 9.67 7.67 9 8.5 9h1.5v1.5H8.5V15zm8 0h-1.5v-1.5h-1.5V12h3V15z"/></svg>
               </span>
             </div>
  
-            <!-- ส่วนแสดงยศ (Roles) -->
             <div class="roles-section">
               <div class="roles-title">บทบาท</div>
               <div class="roles-container">
                 <div class="role-tag">
-                  <span class="role-dot" style="background: #10b981;"></span>
-                  <span>Verified User</span>
-                </div>
-                <div class="role-tag">
-                  <span class="role-dot" style="background: #5865f2;"></span>
-                  <span>Member</span>
+                  <span class="role-dot" style="background: {{ role_color }};"></span>
+                  <span>{{ role_name }}</span>
                 </div>
               </div>
             </div>
@@ -506,8 +492,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
  
             <div class="divider"></div>
  
+            <!-- แสดงวันที่สมัครสมาชิกจริงของผู้ใช้ -->
             <div class="info-section-title">เป็นสมาชิกตั้งแต่</div>
-            <div class="info-section-value">11 ธ.ค. 2566</div>
+            <div class="info-section-value">{{ user.joined_at if user and user.joined_at else 'วันนี้' }}</div>
  
             <div class="info-section-title">การเชื่อมต่อ</div>
             <div class="connections-placeholder">
@@ -618,10 +605,6 @@ def get_role_info(guild_id, role_id):
         print("ดึงข้อมูลยศไม่สำเร็จ:", e)
     return {"name": "Verified", "color": "#57F287"}
 
-def get_role_name(guild_id, role_id):
-    info = get_role_info(guild_id, role_id)
-    return info["name"]
-
 @app.route("/")
 def home():
     discord_login_url = (
@@ -632,7 +615,6 @@ def home():
         HTML_TEMPLATE,
         title="ยืนยันตัวตน",
         subtitle="กำลังนำคุณไปหน้ายืนยันตัวตนผ่าน Discord",
-        result_state="processing",
         button_url=discord_login_url,
         button_text="🚀 เข้าสู่ระบบผ่าน Discord",
         user=None,
@@ -656,7 +638,7 @@ def callback():
     access_token = token_resp.json().get("access_token")
 
     if not access_token:
-        return "เกิดข้อผิดพลาด", 400
+        return "เกิดข้อผิดพลาดในการขอ Token", 400
 
     user_data = requests.get("https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {access_token}"}).json()
     user_id = user_data.get("id")
@@ -664,32 +646,40 @@ def callback():
     avatar_id = user_data.get("avatar")
     avatar_url = f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_id}.png" if avatar_id else "https://cdn.discordapp.com/embed/avatars/0.png"
 
-    user_info = {"id": user_id, "username": username, "avatar_url": avatar_url}
+    # คำนวณวันที่สมัครสมาชิกจาก Discord Snowflake ID
+    timestamp = ((int(user_id) >> 22) + 1420070400000) / 1000
+    joined_dt = datetime.datetime.utcfromtimestamp(timestamp)
+    joined_date_thai = thai_date(joined_dt)
+
+    user_info = {
+        "id": user_id, 
+        "username": username, 
+        "avatar_url": avatar_url,
+        "joined_at": joined_date_thai
+    }
 
     bot_headers = {"Authorization": f"Bot {BOT_TOKEN}"}
     add_role_url = f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}/roles/{ROLE_ID}"
     r = requests.put(add_role_url, headers=bot_headers)
 
+    role_info = get_role_info(GUILD_ID, ROLE_ID)
+
     if r.status_code in [204, 200]:
         return render_template_string(
             HTML_TEMPLATE,
             title="ยืนยันตัวตนสำเร็จ",
-            result_state="success",
-            result_title="ให้ยศสำเร็จ",
-            result_message="ระบบได้เพิ่มยศให้คุณเรียบร้อยแล้ว",
             user=user_info,
-            role_name=get_role_name(GUILD_ID, ROLE_ID) or "Verified",
+            role_name=role_info["name"],
+            role_color=role_info["color"],
         )
     else:
         return render_template_string(
             HTML_TEMPLATE,
             title="เกิดข้อผิดพลาด",
-            result_state="error",
-            result_title="เกิดข้อผิดพลาด",
-            result_message="ไม่สามารถเพิ่มยศได้ (ตรวจสอบลำดับยศของบอท)",
             user=user_info,
+            role_name=role_info["name"],
+            role_color=role_info["color"],
         )
-
 
 class VerifyView(discord.ui.View):
     def __init__(self):
@@ -697,7 +687,7 @@ class VerifyView(discord.ui.View):
         self.add_item(
             discord.ui.Button(
                 label="ยืนยันตัวตนเข้าดิส",
-                url="https://discord.com/oauth2/authorize?client_id=1292567654405771334&response_type=code&redirect_uri=https%3A%2F%2Fstifshop.up.railway.app%2Fcallback&scope=identify",
+                url=f"https://discord.com/oauth2/authorize?client_id={CLIENT_ID}&response_type=code&redirect_uri=https%3A%2F%2Fstifshop.up.railway.app%2Fcallback&scope=identify",
                 style=discord.ButtonStyle.link,
                 emoji="<a:emoji_125:1283873278129213471>",
             )
@@ -706,8 +696,7 @@ class VerifyView(discord.ui.View):
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
-
-    activity = discord.Streaming(name="อยากดูหี", url="https://www.twitch.tv/Jxycop_x")
+    activity = discord.Streaming(name="STIF SHOP รับยศออโต้", url="https://www.twitch.tv/Jxycop_x")
     await bot.change_presence(status=discord.Status.idle, activity=activity)
 
     try:
@@ -716,14 +705,12 @@ async def on_ready():
     except Exception as e:
         print(e)
 
-
-
 @bot.tree.command(name="setup", description="ส่งหน้าต่างยืนยันตัวตนสำหรับสมาชิก")
 @app_commands.checks.has_permissions(administrator=True)
 async def setup(interaction: discord.Interaction):
     embed = discord.Embed(
         title="⚙️ STIF SHOP",
-        description=f"🛒   บอทรับยศ 24 ชั่วโมง\n\n"
+        description=f"🛒    บอทรับยศ 24 ชั่วโมง\n\n"
                     f"📥 กดปุ่มข้างล่างเพื่อรับยศ <@&{ROLE_ID}>",
         color=discord.Color(0x000000)
     )
