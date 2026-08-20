@@ -25,18 +25,18 @@ CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 REDIRECT_URI = "https://sdfsafasfasfsafasf.onrender.com/callback"
 
+START_URL = "https://sdfsafasfasfsafasf.onrender.com/start"
+
 GUILD_ID = 1207514483527000084
 ROLE_ID = 1211224793060478976
 
 LOG_CHANNEL_ID = int(os.environ.get("LOG_CHANNEL_ID", "1539922513189150780") or 0)
-
 ERROR_LOG_CHANNEL_ID = int(os.environ.get("ERROR_LOG_CHANNEL_ID", "1539922650510532658") or 0) or LOG_CHANNEL_ID
 
-OAUTH_STATE_TTL_SECONDS = 600         
-RATE_LIMIT_MAX_REQUESTS = 8            
-RATE_LIMIT_WINDOW_SECONDS = 60         
-VERIFY_COOLDOWN_SECONDS = 60           
-
+OAUTH_STATE_TTL_SECONDS = 600
+RATE_LIMIT_MAX_REQUESTS = 8
+RATE_LIMIT_WINDOW_SECONDS = 60
+VERIFY_COOLDOWN_SECONDS = 60
 
 DATA_DIR = os.path.dirname(os.path.abspath(__file__))
 VERIFIED_LOG_PATH = os.path.join(DATA_DIR, "verified_users.json")
@@ -89,25 +89,19 @@ def _append_json(path, record):
                         loaded = json.loads(content)
                         if isinstance(loaded, list):
                             data = loaded
-                        else:
-                            data = []
             except (json.JSONDecodeError, OSError) as e:
                 logger.error(f"อ่านไฟล์ JSON ไม่สำเร็จ ({path}): {e}")
-                data = []
-        
         if not isinstance(data, list):
             data = []
-            
         data.append(record)
-        
         try:
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
         except OSError as e:
             logger.error(f"เขียนไฟล์ JSON ไม่สำเร็จ ({path}): {e}")
 
+
 def save_verified_user(user_info, role_name, ip_address=None, already_verified=False):
-    """บันทึกผู้ใช้ที่รับยศสำเร็จลง verified_users.json"""
     record = {
         "user_id": user_info.get("id"),
         "username": user_info.get("username"),
@@ -116,14 +110,13 @@ def save_verified_user(user_info, role_name, ip_address=None, already_verified=F
         "ip_address": ip_address,
         "already_verified": already_verified,
         "verified_at_utc": datetime.datetime.utcnow().isoformat(),
-        "verified_at_thai": thai_date_placeholder(),
+        "verified_at_thai": thai_date(),
     }
     _append_json(VERIFIED_LOG_PATH, record)
     return record
 
 
 def save_error_log(context, error_message, user_info=None):
-    """บันทึก error ลง error_log.json"""
     record = {
         "context": context,
         "error": _redact_secrets(error_message),
@@ -135,11 +128,10 @@ def save_error_log(context, error_message, user_info=None):
     return record
 
 
-_SECRET_PATTERNS = [
+_SECRET_PATTERNS = [p for p in [
     (CLIENT_SECRET, "[REDACTED_CLIENT_SECRET]") if CLIENT_SECRET else None,
     (BOT_TOKEN, "[REDACTED_BOT_TOKEN]") if BOT_TOKEN else None,
-]
-_SECRET_PATTERNS = [p for p in _SECRET_PATTERNS if p]
+] if p]
 
 
 def _redact_secrets(text):
@@ -154,9 +146,16 @@ def _redact_secrets(text):
     return text
 
 
+THAI_MONTHS = [
+    "", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+    "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
+]
 
-def thai_date_placeholder():
-    return thai_date()
+
+def thai_date(dt=None):
+    dt = dt or datetime.datetime.utcnow()
+    return f"{dt.day} {THAI_MONTHS[dt.month]} {dt.year + 543}"
+
 
 def send_log_embed(embed: discord.Embed, channel_id: int = None):
     target_channel_id = channel_id or LOG_CHANNEL_ID
@@ -198,7 +197,6 @@ def generate_oauth_state():
 
 
 def verify_and_consume_oauth_state(state_from_query, state_from_cookie):
-    """ตรวจสอบ state แบบ one-time use: ต้องตรงกันทั้ง query กับ cookie และยังไม่หมดอายุ"""
     if not state_from_query or not state_from_cookie:
         return False
     if state_from_query != state_from_cookie:
@@ -259,8 +257,7 @@ def user_has_role(guild_id, user_id, role_id):
         if resp.status_code == 404:
             return False
         resp.raise_for_status()
-        member = resp.json()
-        member_roles = [str(r) for r in member.get("roles", [])]
+        member_roles = [str(r) for r in resp.json().get("roles", [])]
         return str(role_id) in member_roles
     except Exception as e:
         logger.error(f"เช็คยศผู้ใช้ไม่สำเร็จ: {e}")
@@ -315,17 +312,40 @@ def log_error_event(context, error_message, user_info=None, ip_address=None):
     send_log_embed(embed, channel_id=ERROR_LOG_CHANNEL_ID)
 
 
-THAI_MONTHS = [
-    "", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
-    "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
-]
- 
- 
-def thai_date(dt=None):
-    dt = dt or datetime.datetime.utcnow()
-    return f"{dt.day} {THAI_MONTHS[dt.month]} {dt.year + 543}"
- 
- 
+def _client_ip():
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.remote_addr
+
+
+def _role_color_hex(color_int):
+    if not color_int:
+        return "#99AAB5"
+    return f"#{color_int:06x}"
+
+
+def get_role_info(guild_id, role_id):
+    try:
+        resp = requests.get(
+            f"https://discord.com/api/v10/guilds/{guild_id}/roles",
+            headers={"Authorization": f"Bot {BOT_TOKEN}"},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        for role in resp.json():
+            if str(role.get("id")) == str(role_id):
+                return {"name": role.get("name"), "color": _role_color_hex(role.get("color"))}
+    except Exception as e:
+        logger.error(f"ดึงข้อมูลยศไม่สำเร็จ: {e}")
+        log_error_event("get_role_info", str(e))
+    return {"name": "Verified", "color": "#57F287"}
+
+
+def get_role_name(guild_id, role_id):
+    return get_role_info(guild_id, role_id)["name"]
+
+
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="th">
 <head>
@@ -542,8 +562,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
   .role-dot { width: 8px; height: 8px; border-radius: 50%; background: #57F287; box-shadow: 0 0 8px #57F287; }
-  .role-remove-icon { width: 12px; height: 12px; fill: #949ba4; cursor: pointer; transition: fill 0.2s; }
-  .role-remove-icon:hover { fill: #ffffff; }
 
   .result-message { margin-bottom: 16px; color: #b5bac1; font-size: 0.86rem; font-weight: 400; }
 
@@ -626,11 +644,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               </div>
             </div>
 
-            <div class="display-name-main">{{ user.username if user and user.username else 'jxycopstepmod' }}</div>
+            <div class="display-name-main">{{ user.username if user and user.username else 'Unknown' }}</div>
             <div class="user-handle-sub">
-              <span>@{{ user.username if user and user.username else 'jxycopstepmod' }}</span>
+              <span>@{{ user.username if user and user.username else 'unknown' }}</span>
               <span>•</span>
-              <span>ID: {{ user.id if user and user.id else '1183718234806038563' }}</span>
+              <span>ID: {{ user.id if user and user.id else '-' }}</span>
             </div>
 
             <div class="divider-line"></div>
@@ -638,21 +656,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="profile-info-block">
               <div class="label">บทบาท</div>
               <div class="roles-container">
+                {% if role_name %}
+                <div class="role-tag">
+                  <span class="role-dot" style="background:{{ role_color | default('#57F287') }}; box-shadow: 0 0 8px {{ role_color | default('#57F287') }};"></span>
+                  <span>{{ role_name }}</span>
+                </div>
+                {% else %}
                 <div class="role-tag">
                   <span class="role-dot"></span>
-                  <span>User</span>
-                  <svg class="role-remove-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                  <span>Verified</span>
                 </div>
+                {% endif %}
               </div>
             </div>
 
             <div class="profile-info-block" style="margin-bottom: 0; margin-top: 10px;">
               <div class="label" style="display:flex; align-items:center; gap:5px; color: #b5bac1; font-size: 0.72rem; text-transform: none; font-weight: 500;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
-                ยืนยันตัวตนเมื่อ วันนี้
+                ยืนยันตัวตนเมื่อ {{ verified_at | default('วันนี้') }}
               </div>
             </div>
-
           </div>
         </div>
 
@@ -671,50 +694,33 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <script>
     function openDiscord(event) {
       event.preventDefault();
-
       const discordWebUrl = "{{ button_url | default('https://discord.com/app') }}";
       const ua = navigator.userAgent || navigator.vendor || window.opera;
       const isAndroid = /Android/i.test(ua);
       const isIOS = /iPhone|iPad|iPod/i.test(ua) ||
                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-      // Desktop -> เปิดเว็บตรงๆ
       if (!isAndroid && !isIOS) {
         window.location.href = discordWebUrl;
         return;
       }
-
       let appOpened = false;
-
-      const onVisibilityChange = function () {
-        if (document.hidden) {
-          appOpened = true;
-        }
-      };
+      const onVisibilityChange = function () { if (document.hidden) appOpened = true; };
       document.addEventListener('visibilitychange', onVisibilityChange);
       window.addEventListener('pagehide', onVisibilityChange);
-
-      // ถ้าผ่านไปสักพักแล้วหน้ายังไม่ถูกซ่อน แปลว่าแอปไม่ถูกเปิด -> fallback ไปเว็บ
-      const fallbackTimer = setTimeout(function () {
+      setTimeout(function () {
         document.removeEventListener('visibilitychange', onVisibilityChange);
         window.removeEventListener('pagehide', onVisibilityChange);
-        if (!appOpened) {
-          window.location.href = discordWebUrl;
-        }
+        if (!appOpened) window.location.href = discordWebUrl;
       }, 2000);
-
       if (isAndroid) {
-        // ใส่ host (เช่น "-") ให้ intent URL ครบฟอร์แมต ไม่งั้นบางเครื่อง Android ไม่ยอม trigger แอป
-        window.location.href =
-          'intent://-#Intent;scheme=discord;package=com.discord;' +
-          'S.browser_fallback_url=' + encodeURIComponent(discordWebUrl) + ';end';
+        window.location.href = 'intent://-#Intent;scheme=discord;package=com.discord;S.browser_fallback_url=' + encodeURIComponent(discordWebUrl) + ';end';
       } else if (isIOS) {
-        // discord:// เปิดแอป Discord ตรงๆ ถ้าแอปถูกลงไว้ในเครื่อง
         window.location.href = 'discord://-';
       }
     }
 
-    document.getElementById('discord-btn').addEventListener('click', openDiscord);
+    const btn = document.getElementById('discord-btn');
+    if (btn) btn.addEventListener('click', openDiscord);
 
     function spawnConfetti() {
       const colors = ['#57F287', '#8b5cf6', '#22d3ee', '#ffffff'];
@@ -734,20 +740,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       document.getElementById('phase-checking').classList.remove('active');
       document.getElementById('phase-result').classList.add('active');
       document.body.classList.remove('phase-checking');
-      document.body.classList.add('phase-success');
+      document.body.classList.add('phase-{{ result_state | default("success") }}');
+      {% if (result_state | default('success')) == 'success' %}
       spawnConfetti();
+      {% endif %}
     }, 3500);
   </script>
-
 </body>
 </html>
 """
+
 app = Flask(__name__)
+
 
 @app.route('/favicon.ico')
 def favicon():
     return '', 204
-
 
 @app.errorhandler(Exception)
 def handle_unhandled_exception(e):
@@ -756,33 +764,28 @@ def handle_unhandled_exception(e):
     log_error_event(f"flask:{request.path}", str(e), ip_address=_client_ip())
     return "เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง", 500
 
-def _role_color_hex(color_int):
-    if not color_int:
-        return "#99AAB5"
-    return f"#{color_int:06x}"
- 
-def get_role_info(guild_id, role_id):
-    try:
-        resp = requests.get(
-            f"https://discord.com/api/v10/guilds/{guild_id}/roles",
-            headers={"Authorization": f"Bot {BOT_TOKEN}"},
-            timeout=10,
-        )
-        resp.raise_for_status()
-        for role in resp.json():
-            if str(role.get("id")) == str(role_id):
-                return {
-                    "name": role.get("name"),
-                    "color": _role_color_hex(role.get("color")),
-                }
-    except Exception as e:
-        logger.error(f"ดึงข้อมูลยศไม่สำเร็จ: {e}")
-        log_error_event("get_role_info", str(e))
-    return {"name": "Verified", "color": "#57F287"}
 
-def get_role_name(guild_id, role_id):
-    info = get_role_info(guild_id, role_id)
-    return info["name"]
+@app.route("/start")
+@rate_limit()
+def start():
+    state = generate_oauth_state()
+    discord_login_url = (
+        f"https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}"
+        f"&redirect_uri={REDIRECT_URI}&response_type=code&scope=identify%20guilds.join"
+        f"&state={state}"
+    )
+    resp = make_response(redirect(discord_login_url, code=302))
+    resp.set_cookie(
+        "oauth_state",
+        state,
+        max_age=OAUTH_STATE_TTL_SECONDS,
+        httponly=True,
+        secure=True,
+        samesite="Lax",
+    )
+    logger.info(f"[/start] สร้าง OAuth state สำหรับ IP={_client_ip()}")
+    return resp
+
 
 @app.route("/")
 @rate_limit()
@@ -813,13 +816,6 @@ def home():
     )
     return resp
 
-def _client_ip():
-    forwarded = request.headers.get("X-Forwarded-For", "")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.remote_addr
-
-
 @app.route("/callback", strict_slashes=False)
 @rate_limit()
 def callback():
@@ -828,13 +824,18 @@ def callback():
     state_from_query = request.args.get("state")
     state_from_cookie = request.cookies.get("oauth_state")
 
+    logger.info(
+        f"[/callback] IP={ip_address} "
+        f"code={'yes' if code else 'no'} "
+        f"state_query={'yes' if state_from_query else 'no'} "
+        f"state_cookie={'yes' if state_from_cookie else 'no'}"
+    )
+
     if not code:
-        logger.warning(f"ไม่พบ code จาก callback (IP: {ip_address})")
         log_error_event("callback:missing_code", "ไม่พบรหัสยืนยันตัวตน (code) ใน request", ip_address=ip_address)
         return "ไม่พบรหัสยืนยันตัวตน", 400
 
     if not verify_and_consume_oauth_state(state_from_query, state_from_cookie):
-        logger.warning(f"OAuth state ไม่ถูกต้องหรือหมดอายุ (IP: {ip_address})")
         log_error_event(
             "callback:invalid_state",
             "state ไม่ตรงกันหรือหมดอายุ (อาจเป็นความพยายาม CSRF หรือลิงก์เก่าที่หมดอายุ)",
@@ -845,7 +846,7 @@ def callback():
             title="ลิงก์หมดอายุ",
             result_state="error",
             result_title="ลิงก์ไม่ถูกต้อง",
-            result_message="ลิงก์ยืนยันตัวตนหมดอายุหรือไม่ถูกต้อง กรุณากดยืนยันตัวตนใหม่อีกครั้ง",
+            result_message="ลิงก์ยืนยันตัวตนหมดอายุหรือไม่ถูกต้อง กรุณากดปุ่มยืนยันตัวตนใหม่อีกครั้ง",
             user=None,
         ), 400)
         resp.delete_cookie("oauth_state")
@@ -854,15 +855,13 @@ def callback():
     user_info = None
 
     try:
-        data = {
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": REDIRECT_URI,
-        }
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        token_resp = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers, timeout=10)
+        token_resp = requests.post(
+            "https://discord.com/api/oauth2/token",
+            data={"client_id": CLIENT_ID, "client_secret": CLIENT_SECRET,
+                  "grant_type": "authorization_code", "code": code, "redirect_uri": REDIRECT_URI},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=10,
+        )
         token_json = token_resp.json()
         access_token = token_json.get("access_token")
 
@@ -885,14 +884,11 @@ def callback():
             headers={"Authorization": f"Bearer {access_token}"},
             timeout=10,
         ).json()
-        user_id = user_data.get("id")
-        username = user_data.get("username")
+        user_id   = user_data.get("id")
+        username  = user_data.get("username")
         avatar_id = user_data.get("avatar")
-        avatar_url = (
-            f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_id}.png"
-            if avatar_id
-            else "https://cdn.discordapp.com/embed/avatars/0.png"
-        )
+        avatar_url = (f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_id}.png"
+                      if avatar_id else "https://cdn.discordapp.com/embed/avatars/0.png")
 
         user_info = {"id": user_id, "username": username, "avatar_url": avatar_url}
 
@@ -911,7 +907,6 @@ def callback():
 
         allowed, seconds_left = check_and_set_cooldown(user_id)
         if not allowed:
-            logger.info(f"Cooldown: {username} ({user_id}) ต้องรออีก {seconds_left}s")
             resp = make_response(render_template_string(
                 HTML_TEMPLATE,
                 title="กรุณารอสักครู่",
@@ -926,8 +921,8 @@ def callback():
         already_has_role = user_has_role(GUILD_ID, user_id, ROLE_ID)
 
         if already_has_role:
-            role_name = get_role_name(GUILD_ID, ROLE_ID) or "Verified"
-            log_role_granted(user_info, role_name, ip_address, already_verified=True)
+            role_info = get_role_info(GUILD_ID, ROLE_ID)
+            log_role_granted(user_info, role_info["name"], ip_address, already_verified=True)
             resp = make_response(render_template_string(
                 HTML_TEMPLATE,
                 title="ยืนยันตัวตนแล้ว",
@@ -935,18 +930,24 @@ def callback():
                 result_title="ยืนยันตัวตนแล้ว",
                 result_message="คุณมียศนี้อยู่แล้ว ไม่ต้องทำอะไรเพิ่ม",
                 user=user_info,
-                role_name=role_name,
+                role_name=role_info["name"],
+                role_color=role_info["color"],
+                verified_at=thai_date(),
+                button_url="https://discord.com/app",
+                button_text="กลับไปที่ Discord",
             ))
             resp.delete_cookie("oauth_state")
             return resp
 
-        bot_headers = {"Authorization": f"Bot {BOT_TOKEN}"}
-        add_role_url = f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}/roles/{ROLE_ID}"
-        r = requests.put(add_role_url, headers=bot_headers, timeout=10)
+        r = requests.put(
+            f"https://discord.com/api/v10/guilds/{GUILD_ID}/members/{user_id}/roles/{ROLE_ID}",
+            headers={"Authorization": f"Bot {BOT_TOKEN}"},
+            timeout=10,
+        )
 
         if r.status_code in [204, 200]:
-            role_name = get_role_name(GUILD_ID, ROLE_ID) or "Verified"
-            log_role_granted(user_info, role_name, ip_address)
+            role_info = get_role_info(GUILD_ID, ROLE_ID)
+            log_role_granted(user_info, role_info["name"], ip_address)
             resp = make_response(render_template_string(
                 HTML_TEMPLATE,
                 title="ยืนยันตัวตนสำเร็จ",
@@ -954,7 +955,11 @@ def callback():
                 result_title="ให้ยศสำเร็จ",
                 result_message="ระบบได้เพิ่มยศให้คุณเรียบร้อยแล้ว",
                 user=user_info,
-                role_name=role_name,
+                role_name=role_info["name"],
+                role_color=role_info["color"],
+                verified_at=thai_date(),
+                button_url="https://discord.com/app",
+                button_text="กลับไปที่ Discord",
             ))
             resp.delete_cookie("oauth_state")
             return resp
@@ -973,9 +978,7 @@ def callback():
             return resp
 
     except requests.exceptions.RequestException as e:
-        error_detail = f"เชื่อมต่อ Discord API ไม่สำเร็จ: {e}"
-        logger.error(error_detail)
-        log_error_event("callback:request_exception", error_detail, user_info, ip_address)
+        log_error_event("callback:request_exception", f"เชื่อมต่อ Discord API ไม่สำเร็จ: {e}", user_info, ip_address)
         resp = make_response(render_template_string(
             HTML_TEMPLATE,
             title="เกิดข้อผิดพลาด",
@@ -987,8 +990,6 @@ def callback():
         resp.delete_cookie("oauth_state")
         return resp
     except Exception as e:
-        error_detail = f"{e}\n{traceback.format_exc()}"
-        logger.error(f"Unhandled exception ใน /callback: {_redact_secrets(error_detail)}")
         log_error_event("callback:unhandled_exception", str(e), user_info, ip_address)
         resp = make_response(render_template_string(
             HTML_TEMPLATE,
@@ -1001,40 +1002,32 @@ def callback():
         resp.delete_cookie("oauth_state")
         return resp
 
-
 class VerifyView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         self.add_item(
             discord.ui.Button(
                 label="ยืนยันตัวตนเข้าดิส",
-                url=f"https://discord.com/oauth2/authorize?client_id=1292567654405771334&response_type=code&redirect_uri=https%3A%2F%2Fsdfsafasfasfsafasf.onrender.com%2Fcallback&scope=identify+guilds.join",
+                url=START_URL,
                 style=discord.ButtonStyle.link,
                 emoji="<a:emoji_125:1283873278129213471>",
             )
         )
 
+
 @bot.event
 async def on_ready():
     logger.info(f"Logged in as {bot.user} (ID: {bot.user.id})")
 
-    if LOG_CHANNEL_ID:
-        channel = bot.get_channel(LOG_CHANNEL_ID)
-        if channel is None:
-            logger.warning(f"ไม่พบ LOG_CHANNEL_ID={LOG_CHANNEL_ID} (บอทอาจไม่มีสิทธิ์เข้าถึงช่องนี้)")
+    for ch_id, label in [(LOG_CHANNEL_ID, "log"), (ERROR_LOG_CHANNEL_ID, "error log")]:
+        if ch_id:
+            ch = bot.get_channel(ch_id)
+            if ch is None:
+                logger.warning(f"ไม่พบ {label} channel ID={ch_id}")
+            else:
+                logger.info(f"ตั้งค่า {label} channel: #{ch.name} ({ch_id})")
         else:
-            logger.info(f"ตั้งค่า log channel (รับยศ) เรียบร้อย: #{channel.name} ({LOG_CHANNEL_ID})")
-    else:
-        logger.warning("ยังไม่ได้ตั้งค่า LOG_CHANNEL_ID จะไม่มีการส่ง log การรับยศเข้า Discord channel")
-
-    if ERROR_LOG_CHANNEL_ID:
-        err_channel = bot.get_channel(ERROR_LOG_CHANNEL_ID)
-        if err_channel is None:
-            logger.warning(f"ไม่พบ ERROR_LOG_CHANNEL_ID={ERROR_LOG_CHANNEL_ID} (บอทอาจไม่มีสิทธิ์เข้าถึงช่องนี้)")
-        else:
-            logger.info(f"ตั้งค่า error log channel เรียบร้อย: #{err_channel.name} ({ERROR_LOG_CHANNEL_ID})")
-    else:
-        logger.warning("ยังไม่ได้ตั้งค่า ERROR_LOG_CHANNEL_ID จะไม่มีการส่ง log ข้อผิดพลาดเข้า Discord channel")
+            logger.warning(f"ยังไม่ได้ตั้งค่า {label.upper()}_CHANNEL_ID")
 
     activity = discord.Streaming(name="อยากดูหี", url="https://www.twitch.tv/Jxycop_x")
     await bot.change_presence(status=discord.Status.idle, activity=activity)
@@ -1064,7 +1057,6 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
         await interaction.response.send_message("❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", ephemeral=True)
 
 
-
 @bot.tree.command(name="setup", description="ส่งหน้าต่างยืนยันตัวตนสำหรับสมาชิก")
 @app_commands.checks.has_permissions(administrator=True)
 async def setup(interaction: discord.Interaction):
@@ -1072,16 +1064,19 @@ async def setup(interaction: discord.Interaction):
         title="⚙️ STIF SHOP",
         description=f"🛒   บอทรับยศ 24 ชั่วโมง\n\n"
                     f"📥 กดปุ่มข้างล่างเพื่อรับยศ <@&{ROLE_ID}>",
-        color=discord.Color(0x000000)
+        color=discord.Color(0x000000),
     )
     embed.set_footer(
         text="🟢• STIF SHOP • ระบบรับยศ",
-        icon_url='https://media.tenor.com/bhC8X-tsTK4AAAAi/tspchan1-lick.gif'
+        icon_url="https://media.tenor.com/bhC8X-tsTK4AAAAi/tspchan1-lick.gif",
     )
-    embed.set_image(url="https://images-ext-1.discordapp.net/external/UZlJhcpilRkbJAUtbbLfM3I8NByAJj3W2YYl-lZdCMs/https/i.postimg.cc/8PFsC2cg/im-age.png?format=webp&quality=lossless")
-    embed.set_thumbnail(url='https://media.tenor.com/bhC8X-tsTK4AAAAi/tspchan1-lick.gif')
+    embed.set_image(
+        url="https://images-ext-1.discordapp.net/external/UZlJhcpilRkbJAUtbbLfM3I8NByAJj3W2YYl-lZdCMs/https/i.postimg.cc/8PFsC2cg/im-age.png?format=webp&quality=lossless"
+    )
+    embed.set_thumbnail(url="https://media.tenor.com/bhC8X-tsTK4AAAAi/tspchan1-lick.gif")
     await interaction.response.send_message("✅ สร้างปุ่มยืนยันตัวตนสำเร็จ!", ephemeral=True)
     await interaction.channel.send(embed=embed, view=VerifyView())
+
 
 def run_web():
     port = int(os.environ.get("PORT", "5000"))
@@ -1090,10 +1085,7 @@ def run_web():
         logger.info(f"เริ่ม production server (waitress) ที่พอร์ต {port}")
         serve(app, host="0.0.0.0", port=port, threads=8)
     except ImportError:
-        logger.warning(
-            "ไม่พบ waitress (pip install waitress) — จะ fallback ไปใช้ Flask dev server แทน "
-            "ไม่แนะนำให้ใช้ตัวนี้ใน production เพราะรับโหลดพร้อมกันหลายคนไม่ได้ดี"
-        )
+        logger.warning("ไม่พบ waitress — fallback ไปใช้ Flask dev server")
         try:
             app.run(host="0.0.0.0", port=port)
         except Exception as e:
