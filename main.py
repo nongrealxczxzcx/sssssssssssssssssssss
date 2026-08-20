@@ -85,17 +85,26 @@ def _append_json(path, record):
             try:
                 with open(path, "r", encoding="utf-8") as f:
                     content = f.read().strip()
-                    data = json.loads(content) if content else []
+                    if content:
+                        loaded = json.loads(content)
+                        if isinstance(loaded, list):
+                            data = loaded
+                        else:
+                            data = []
             except (json.JSONDecodeError, OSError) as e:
                 logger.error(f"อ่านไฟล์ JSON ไม่สำเร็จ ({path}): {e}")
                 data = []
+        
+        if not isinstance(data, list):
+            data = []
+            
         data.append(record)
+        
         try:
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
         except OSError as e:
             logger.error(f"เขียนไฟล์ JSON ไม่สำเร็จ ({path}): {e}")
-
 
 def save_verified_user(user_info, role_name, ip_address=None, already_verified=False):
     """บันทึกผู้ใช้ที่รับยศสำเร็จลง verified_users.json"""
