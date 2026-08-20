@@ -185,12 +185,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .discord-banner {
     width: 100%;
     height: 100px;
-    background: #3c352c url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop') center/cover;
+    background: #111214;
     position: relative;
     display: flex;
     justify-content: flex-end;
     align-items: flex-start;
     padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   }
  
   .banner-status-badge {
@@ -438,7 +439,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <div class="discord-banner">
             <div class="banner-status-badge">
               <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              <span>คู่หู NPC ที่ชื่นชอบ</span>
+              <span>ยืนยันตัวตนแล้ว</span>
             </div>
           </div>
  
