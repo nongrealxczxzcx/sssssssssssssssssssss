@@ -45,11 +45,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg-0:#000000;
+    --bg-0:#050507;
     --card-bg:#111214;
-    --border-color:rgba(255, 255, 255, 0.08);
+    --border-color:rgba(35, 165, 89, 0.2);
     --text-hi:#ffffff;
     --text-lo:#949ba4;
+    --accent-green:#23a559;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{
@@ -73,14 +74,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .ambient-bg{
     position:fixed;inset:0;pointer-events:none;z-index:1;
     background:
-      radial-gradient(circle at 50% 0%, rgba(30, 30, 35, 0.25), transparent 60%),
-      radial-gradient(circle at 50% 100%, rgba(10, 10, 15, 0.4), transparent 60%);
+      radial-gradient(circle at 50% 0%, rgba(35, 165, 89, 0.15), transparent 65%),
+      radial-gradient(circle at 50% 100%, rgba(10, 15, 12, 0.5), transparent 60%);
     transition:background 0.8s ease;
-  }
-  body.phase-success .ambient-bg{
-    background:
-      radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.12), transparent 60%),
-      radial-gradient(circle at 50% 100%, rgba(10, 10, 15, 0.4), transparent 60%);
   }
  
   .noise{
@@ -91,20 +87,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
  
   .card-wrap{ position:relative; z-index:10; width:100%; max-width:400px; margin:auto; }
   .card-glow{
-    position:absolute; inset:-2px; border-radius:26px;
-    background:linear-gradient(135deg, rgba(255,255,255,0.1), rgba(50,50,60,0.05));
-    filter:blur(24px);
-    opacity:0.5;
+    position:absolute; inset:-3px; border-radius:26px;
+    background:linear-gradient(135deg, rgba(35,165,89,0.35), rgba(88,101,242,0.1));
+    filter:blur(20px);
+    opacity:0.7;
     z-index:-1;
     animation:glowPulse 6s ease-in-out infinite;
-    transition:background 0.8s ease;
   }
   @keyframes glowPulse{
-    0%,100%{ opacity:0.3; transform:scale(1); }
-    50%{ opacity:0.6; transform:scale(1.02); }
-  }
-  body.phase-success .card-glow{
-    background:linear-gradient(135deg, rgba(16,185,129,0.3), rgba(255,255,255,0.05));
+    0%,100%{ opacity:0.5; transform:scale(1); }
+    50%{ opacity:0.8; transform:scale(1.02); }
   }
  
   .card{
@@ -113,8 +105,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     padding:24px 20px;
     background:var(--card-bg);
     border:1px solid var(--border-color);
-    border-radius:20px;
-    box-shadow: 0 30px 70px -15px rgba(0,0,0,0.95);
+    border-radius:22px;
+    box-shadow: 0 30px 70px -15px rgba(0,0,0,0.95), 0 0 30px rgba(35, 165, 89, 0.1);
     text-align:center;
     animation:cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
     overflow: hidden;
@@ -132,8 +124,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .loader-ring-outer {
     position: absolute; inset: 0; border-radius: 50%;
     border: 2px solid transparent;
-    border-top-color: #ffffff;
-    border-right-color: rgba(255, 255, 255, 0.2);
+    border-top-color: var(--accent-green);
+    border-right-color: rgba(35, 165, 89, 0.2);
     animation: spinClockwise 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
   }
   .loader-ring-inner {
@@ -147,25 +139,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   @keyframes spinCounter { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
   .loader-core {
     width: 12px; height: 12px; border-radius: 50%;
-    background: #ffffff;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+    background: var(--accent-green);
+    box-shadow: 0 0 15px var(--accent-green);
     animation: pulseCore 1.5s ease-in-out infinite alternate;
   }
   @keyframes pulseCore { 0% { transform: scale(0.7); opacity: 0.5; } 100% { transform: scale(1.25); opacity: 1; } }
  
-  .eyebrow{ font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--text-lo); margin-bottom: 6px; }
+  .eyebrow{ font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-green); margin-bottom: 6px; }
   .title{ font-family:'Kanit',sans-serif; font-weight:600; font-size:1.2rem; color: #ffffff; margin-bottom:6px; }
   .subtitle{ font-size:0.82rem; line-height:1.6; color:var(--text-lo); font-weight:300; margin-bottom:18px; }
   
   .status-line{
     display:flex; align-items:center; justify-content:center; gap:8px;
     width:100%; padding:11px 16px; border-radius:14px;
-    border:1px solid rgba(255,255,255,0.05);
-    background: rgba(255, 255, 255, 0.02);
+    border:1px solid rgba(35, 165, 89, 0.2);
+    background: rgba(35, 165, 89, 0.05);
     color:var(--text-hi); font-size:0.8rem; font-weight:400;
   }
   .status-line .dots span{
-    display:inline-block; width:4px; height:4px; margin-left:2px; border-radius:50%; background:#ffffff;
+    display:inline-block; width:4px; height:4px; margin-left:2px; border-radius:50%; background:var(--accent-green);
     animation:bounce 1.2s ease-in-out infinite;
   }
   .status-line .dots span:nth-child(2){animation-delay:0.15s;}
@@ -174,40 +166,42 @@ HTML_TEMPLATE = """<!DOCTYPE html>
  
   .discord-profile-modal {
     background: #18191c;
-    border-radius: 12px;
+    border-radius: 14px;
     overflow: hidden;
     text-align: left;
     margin-bottom: 16px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
-    border: 1px solid rgba(255,255,255,0.04);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(35, 165, 89, 0.25);
   }
  
   .discord-banner {
     width: 100%;
     height: 100px;
-    background: #111214;
+    background: linear-gradient(135deg, #1f2d24 0%, #111214 100%);
     position: relative;
     display: flex;
     justify-content: flex-end;
     align-items: flex-start;
-    padding: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 12px;
+    border-bottom: 1px solid rgba(35, 165, 89, 0.15);
   }
  
+  /* ป้ายยืนยันตัวตนสีเขียวสุดพรีเมียม */
   .banner-status-badge {
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(8px);
-    padding: 4px 10px;
+    background: rgba(35, 165, 89, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 6px 14px;
     border-radius: 20px;
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 0.7rem;
-    color: #dbdee1;
-    font-weight: 500;
-    border: 1px solid rgba(255,255,255,0.06);
+    gap: 6px;
+    font-size: 0.75rem;
+    color: #2ecc71;
+    font-weight: 700;
+    border: 1px solid rgba(46, 204, 113, 0.4);
+    box-shadow: 0 4px 12px rgba(35, 165, 89, 0.2);
   }
-  .banner-status-badge svg { width: 10px; height: 10px; fill: #ffffff; }
+  .banner-status-badge svg { width: 13px; height: 13px; fill: #2ecc71; }
 
   .discord-body {
     padding: 0 16px 16px 16px;
@@ -235,6 +229,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     border-radius: 50%;
     object-fit: cover;
     border: 6px solid #111214;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   }
 
   .profile-actions {
@@ -253,9 +248,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     justify-content: center;
     color: #dbdee1;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
   }
-  .action-icon-btn:hover { background: #35373c; }
+  .action-icon-btn:hover { background: #35373c; color: #fff; }
   .action-icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
   .profile-name {
@@ -312,26 +307,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     align-items: center;
     gap: 6px;
     background: #2b2d31;
-    padding: 3px 8px;
+    padding: 4px 10px;
     border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 500;
     color: #dbdee1;
+    border: 1px solid rgba(255,255,255,0.03);
   }
   .role-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #5865f2;
+    background: #23a559;
   }
 
   .main-chat-btn {
     width: 100%;
-    background: #5865f2;
+    background: #23a559;
     color: #ffffff;
     border: none;
-    border-radius: 4px;
-    padding: 8px;
+    border-radius: 6px;
+    padding: 9px;
     font-weight: 600;
     font-size: 0.85rem;
     display: flex;
@@ -341,7 +337,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     cursor: pointer;
     margin-bottom: 16px;
     font-family: 'Sarabun', sans-serif;
+    transition: background 0.2s;
   }
+  .main-chat-btn:hover { background: #1f8b4c; }
   .main-chat-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
   .divider {
@@ -385,18 +383,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     font-size: 0.78rem;
     color: #949ba4;
     text-align: left;
-    border: 1px dashed transparent;
   }
 
   .result-btn {
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    width: 100%; color: #000000; font-weight: 600; font-size: 0.95rem; padding: 12px;
-    border-radius: 10px; text-decoration: none; border: none; cursor: pointer;
+    width: 100%; color: #ffffff; font-weight: 600; font-size: 0.95rem; padding: 13px;
+    border-radius: 12px; text-decoration: none; border: none; cursor: pointer;
     transition: all 0.25s ease;
     font-family: 'Sarabun', 'Kanit', sans-serif;
   }
-  .btn-success { background: #ffffff; box-shadow: 0 4px 20px rgba(255,255,255,0.2); }
-  .btn-success:hover { background: #e2e2e2; transform: translateY(-1px); }
+  
+  /* ปุ่มกลับไปที่ Discord สีเขียวเงางามสะดุดตา */
+  .btn-success { 
+    background: linear-gradient(135deg, #2ecc71 0%, #23a559 100%); 
+    box-shadow: 0 6px 22px rgba(35, 165, 89, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .btn-success:hover { 
+    background: linear-gradient(135deg, #27ae60 0%, #1f8b4c 100%); 
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(35, 165, 89, 0.6);
+  }
 
   @keyframes confettiFall{ 0%{transform:translateY(-20px) rotate(0deg); opacity:1;} 100%{transform:translateY(240px) rotate(360deg); opacity:0;} }
   .confetti{ position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:0; }
@@ -461,21 +468,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               </div>
             </div>
  
-            <!-- แสดง Global Name (ชื่อที่ตั้งโชว์) หรือ Username ถ้าไม่มี -->
             <div class="profile-name">{{ user.global_name if user and user.global_name else (user.username if user else 'ผู้ใช้งานทั่วไป') }}</div>
             
             <div class="profile-handle-row">
-              <!-- แสดง Username (ชื่อไอดีจริง) -->
               <span>{{ user.username if user and user.username else 'username' }}</span>
               <span>•</span>
-              <span style="color: #00a8fc; cursor: pointer;">เพิ่มสรรพนาม</span>
+              <span style="color: #23a559; cursor: pointer;">เพิ่มสรรพนาม</span>
               <span>•</span>
-              <span style="color: #00a8fc; cursor: pointer;">แท็กเซิร์ฟเวอร์ ▾</span>
+              <span style="color: #23a559; cursor: pointer;">แท็กเซิร์ฟเวอร์ ▾</span>
             </div>
  
             <div class="badge-row">
               <span class="discord-badge" title="Active Developer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#5865f2"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM8.5 15H7v-4.5C7 9.67 7.67 9 8.5 9h1.5v1.5H8.5V15zm8 0h-1.5v-1.5h-1.5V12h3V15z"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#23a559"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM8.5 15H7v-4.5C7 9.67 7.67 9 8.5 9h1.5v1.5H8.5V15zm8 0h-1.5v-1.5h-1.5V12h3V15z"/></svg>
               </span>
             </div>
  
@@ -496,7 +501,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
  
             <div class="divider"></div>
  
-            <!-- แสดงวันที่สมัครสมาชิกจริงของผู้ใช้ -->
             <div class="info-section-title">เป็นสมาชิกตั้งแต่</div>
             <div class="info-section-value">{{ user.joined_at if user and user.joined_at else 'วันนี้' }}</div>
  
@@ -556,10 +560,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     document.getElementById('discord-btn').addEventListener('click', openDiscord);
  
     function spawnConfetti() {
-      const colors = ['#ffffff', '#5865f2', '#fa777c', '#33333d'];
+      const colors = ['#2ecc71', '#ffffff', '#23a559', '#1abc9c'];
       const container = document.getElementById('confetti');
       if (!container) return;
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 35; i++) {
         const piece = document.createElement('span');
         piece.style.left = Math.random() * 100 + '%';
         piece.style.background = colors[Math.floor(Math.random() * colors.length)];
@@ -589,7 +593,7 @@ def favicon():
 
 def _role_color_hex(color_int):
     if not color_int:
-        return "#99AAB5"
+        return "#23a559"
     return f"#{color_int:06x}"
  
 def get_role_info(guild_id, role_id):
@@ -607,7 +611,7 @@ def get_role_info(guild_id, role_id):
                 }
     except Exception as e:
         print("ดึงข้อมูลยศไม่สำเร็จ:", e)
-    return {"name": "Verified", "color": "#57F287"}
+    return {"name": "Verified", "color": "#23a559"}
 
 @app.route("/")
 def home():
@@ -647,11 +651,10 @@ def callback():
     user_data = requests.get("https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {access_token}"}).json()
     user_id = user_data.get("id")
     username = user_data.get("username")
-    global_name = user_data.get("global_name") # ดึงชื่อแสดงผล (Display Name)
+    global_name = user_data.get("global_name")
     avatar_id = user_data.get("avatar")
     avatar_url = f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_id}.png" if avatar_id else "https://cdn.discordapp.com/embed/avatars/0.png"
 
-    # คำนวณวันที่สมัครสมาชิกจาก Discord Snowflake ID
     timestamp = ((int(user_id) >> 22) + 1420070400000) / 1000
     joined_dt = datetime.datetime.utcfromtimestamp(timestamp)
     joined_date_thai = thai_date(joined_dt)
@@ -718,7 +721,7 @@ async def setup(interaction: discord.Interaction):
         title="⚙️ STIF SHOP",
         description=f"🛒    บอทรับยศ 24 ชั่วโมง\n\n"
                     f"📥 กดปุ่มข้างล่างเพื่อรับยศ <@&{ROLE_ID}>",
-        color=discord.Color(0x000000)
+        color=discord.Color(0x23a559)
     )
     embed.set_footer(
         text="🟢• STIF SHOP • ระบบรับยศ",
