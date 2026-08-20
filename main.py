@@ -20,16 +20,14 @@ REDIRECT_URI = "https://stifshop.up.railway.app/callback"
 GUILD_ID = 1207514483527000084
 ROLE_ID = 1211224793060478976
 
-# --- ตั้งค่า Discord Webhook URL ที่นี่ ---
-WEBHOOK_SUCCESS = "ใส่_Webhook_URL_สำหรับห้องสำเร็จตรงนี้"
-WEBHOOK_ERROR = "ใส่_Webhook_URL_สำหรับห้องแจ้งเตือนErrorตรงนี้"
+WEBHOOK_SUCCESS = "https://discord.com/api/webhooks/1540031111223189701/KhD_TF8YMxmRih4KQCH-MtBnTy74Qcodk7trYCqjy7_z6-6zQ8frXd8dJX-FOaZ1MO7X"
+WEBHOOK_ERROR = "https://discord.com/api/webhooks/1540031111223189701/KhD_TF8YMxmRih4KQCH-MtBnTy74Qcodk7trYCqjy7_z6-6zQ8frXd8dJX-FOaZ1MO7X"
 
 if not BOT_TOKEN or not CLIENT_SECRET:
     raise RuntimeError(
         "กรุณาตั้งค่า BOT_TOKEN และ CLIENT_SECRET เป็น environment variable ก่อนรัน"
     )
 
-# --- DATABASE SETUP (SQLite) ---
 def init_db():
     conn = sqlite3.connect("verifications.db", check_same_thread=False)
     cursor = conn.cursor()
@@ -56,7 +54,6 @@ def thai_date(dt=None):
     dt = dt or datetime.datetime.utcnow()
     return f"{dt.day} {THAI_MONTHS[dt.month]} {dt.year + 543}"
 
-# --- HTML TEMPLATES ---
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="th">
 <head>
