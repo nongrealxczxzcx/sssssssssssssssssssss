@@ -25,10 +25,6 @@ ROLE_ID = 1211224793060478976
 WEBHOOK_SUCCESS = "https://discord.com/api/webhooks/1540031111223189701/KhD_TF8YMxmRih4KQCH-MtBnTy74Qcodk7trYCqjy7_z6-6zQ8frXd8dJX-FOaZ1MO7X"
 WEBHOOK_ERROR = "https://discord.com/api/webhooks/1540065078278365204/8MNh3CWoP4GUM_8k2WLw53H5EumtDUY7p-uMTQ1kvCD30zxFS7VadBlMfRchuBjoVsX3"
 
-# โลโก้ที่ใช้แสดงในหน้า Admin Dashboard (สิ่งที่เคย hardcode ไว้ในเทมเพลตตรงๆ
-# ตอนนี้ย้ายมาไว้เป็นตัวแปรที่นี่ แล้วส่งเข้า template ผ่าน logo_url แทน
-# เพราะเดิมเทมเพลตเช็ค {% if logo_url %} แต่ไม่เคยมีการส่ง logo_url เข้าไปเลย
-# เลยตกไป else แสดงไอคอนโล่ SVG เดิมทุกครั้ง)
 BRAND_LOGO_URL = "https://images-ext-1.discordapp.net/external/wsyQrdpI7DwJnP-HyLwmBThFVdwmGd6QdhWAqD8_zmo/https/cdn.discordapp.com/avatars/1183718234806038563/ea310ab0a655ae6820b3021bbc93d734.png?format=webp&quality=lossless"
 
 if not BOT_TOKEN or not CLIENT_SECRET:
@@ -77,7 +73,6 @@ def init_db():
     """)
     conn.commit()
 
-    # Migration: เผื่อฐานข้อมูลเก่าที่ยังไม่มีคอลัมน์ role_name / role_color
     cursor.execute("PRAGMA table_info(verified_users)")
     existing_cols = {row[1] for row in cursor.fetchall()}
     if "role_name" not in existing_cols:
@@ -495,18 +490,21 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #0a0c10;
-            --card-bg: rgba(17, 20, 26, 0.72);
-            --card-bg-solid: rgba(15, 17, 22, 0.94);
-            --gold: #f2b705;
-            --gold-soft: rgba(242, 183, 5, 0.14);
-            --gold-border: rgba(242, 183, 5, 0.38);
-            --teal: #2dd4bf;
-            --teal-soft: rgba(45, 212, 191, 0.14);
-            --teal-border: rgba(45, 212, 191, 0.35);
-            --red: #f87171;
-            --text-main: #f5f3ee;
-            --text-muted: #8d93a1;
+            --bg-base: #0a0b0f;
+            --card-bg: rgba(18, 20, 25, 0.72);
+            --card-bg-solid: rgba(16, 18, 22, 0.94);
+            --gold: #d9a441;
+            --gold-soft: rgba(217, 164, 65, 0.13);
+            --gold-border: rgba(217, 164, 65, 0.36);
+            --teal: #4fb8a6;
+            --teal-soft: rgba(79, 184, 166, 0.14);
+            --teal-border: rgba(79, 184, 166, 0.34);
+            --seal: #b3462c;
+            --seal-soft: rgba(179, 70, 44, 0.16);
+            --seal-border: rgba(179, 70, 44, 0.4);
+            --red: #f0897a;
+            --text-main: #f2efe8;
+            --text-muted: #8b8f9a;
             --border-color: rgba(255, 255, 255, 0.08);
         }
 
@@ -549,12 +547,12 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         .aurora span { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.45; }
         .aurora span:nth-child(1) {
             width: 44vw; height: 44vw; max-width: 600px; max-height: 600px; top: -16%; left: -10%;
-            background: radial-gradient(circle, rgba(242,183,5,0.35), transparent 70%);
+            background: radial-gradient(circle, rgba(217,164,65,0.35), transparent 70%);
             animation: drift1 24s ease-in-out infinite;
         }
         .aurora span:nth-child(2) {
             width: 38vw; height: 38vw; max-width: 540px; max-height: 540px; bottom: -16%; right: -8%;
-            background: radial-gradient(circle, rgba(45,212,191,0.32), transparent 70%);
+            background: radial-gradient(circle, rgba(79,184,166,0.32), transparent 70%);
             animation: drift2 28s ease-in-out infinite;
         }
         @keyframes drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(6vw,5vh) scale(1.1); } }
@@ -562,7 +560,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
 
         .scanline {
             position: fixed; inset: 0; z-index: 2; pointer-events: none;
-            background: linear-gradient(180deg, transparent 0%, rgba(45,212,191,0.05) 50%, transparent 100%);
+            background: linear-gradient(180deg, transparent 0%, rgba(79,184,166,0.05) 50%, transparent 100%);
             height: 220px; width: 100%;
             animation: sweep 7s ease-in-out infinite;
             mix-blend-mode: screen;
@@ -582,7 +580,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         .seal-spin {
             width: 60px; height: 60px; position: relative;
             animation: sealTurn 1.1s cubic-bezier(0.68,-0.4,0.3,1.3) infinite;
-            filter: drop-shadow(0 0 12px rgba(242,183,5,0.35));
+            filter: drop-shadow(0 0 12px rgba(217,164,65,0.35));
         }
         @keyframes sealTurn { to { transform: rotate(360deg); } }
         .loader-text {
@@ -597,7 +595,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             background: linear-gradient(180deg, rgba(14, 16, 21, 0.92), rgba(8, 9, 13, 0.97));
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: clamp(20px, 3vw, 34px); padding: clamp(16px, 2.8vw, 34px);
-            box-shadow: 0 60px 120px rgba(0,0,0,0.85), 0 0 110px rgba(242,183,5,0.06), inset 0 1px 0 rgba(255,255,255,0.04);
+            box-shadow: 0 60px 120px rgba(0,0,0,0.85), 0 0 110px rgba(217,164,65,0.06), inset 0 1px 0 rgba(255,255,255,0.04);
             backdrop-filter: blur(30px);
             position: relative; overflow: hidden; z-index: 1;
             opacity: 0; transform: translateY(18px);
@@ -618,12 +616,18 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px;
             padding: 32px 22px; display: flex; flex-direction: column; justify-content: space-between; position: relative;
         }
-        .brand-area { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+        .brand-area { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; position: relative; }
+        .brand-area::before {
+            content: ''; position: absolute; top: -7px; left: -7px; width: 64px; height: 64px;
+            border-radius: 50%; border: 1.5px dashed rgba(217,164,65,0.4);
+            animation: sealRingSpin 18s linear infinite; pointer-events: none;
+        }
+        @keyframes sealRingSpin { to { transform: rotate(360deg); } }
         .brand-mark {
             width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;
-            background: linear-gradient(135deg, var(--gold), #d99a04);
+            background: linear-gradient(135deg, var(--gold), #a97328);
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 10px 24px rgba(242,183,5,0.28);
+            box-shadow: 0 10px 24px rgba(217,164,65,0.26);
         }
         .brand-mark svg { width: 24px; height: 24px; }
         .brand-mark img { width: 26px; height: 26px; object-fit: contain; display: block; }
@@ -644,9 +648,9 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         .nav-menu { display: flex; flex-direction: column; gap: 8px; position: relative; }
         .nav-highlight {
             position: absolute; left: 0; width: 100%; border-radius: 14px; z-index: 0;
-            background: linear-gradient(135deg, var(--gold-soft), rgba(242,183,5,0.04));
+            background: linear-gradient(135deg, var(--gold-soft), rgba(217,164,65,0.04));
             border: 1px solid var(--gold-border);
-            box-shadow: 0 8px 20px rgba(242,183,5,0.1);
+            box-shadow: 0 8px 20px rgba(217,164,65,0.1);
             transition: transform 0.45s cubic-bezier(0.16,1,0.3,1), height 0.45s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease;
             pointer-events: none; opacity: 0;
         }
@@ -790,7 +794,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         }
         .activity-item:last-child { border-bottom: none; }
         @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .activity-item:hover { background: rgba(242,183,5,0.045); padding-left: 36px; }
+        .activity-item:hover { background: rgba(217,164,65,0.045); padding-left: 36px; }
 
         .user-info { display: flex; align-items: center; gap: 17px; min-width: 0; }
 
@@ -809,11 +813,11 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
 
         .avatar-badge {
             position: absolute; bottom: -3px; right: -3px; width: 19px; height: 19px;
-            background: var(--gold); border-radius: 50%; border: 2px solid #101318;
+            background: var(--seal); border-radius: 50%; border: 2px solid #101318;
             display: flex; align-items: center; justify-content: center;
             animation: stampIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
         }
-        .avatar-badge svg { width: 10px; height: 10px; stroke: #14171c; stroke-width: 3.5; }
+        .avatar-badge svg { width: 10px; height: 10px; stroke: #f2efe8; stroke-width: 3.5; }
         @keyframes stampIn { from { transform: scale(0) rotate(-35deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
 
         .user-text { min-width: 0; }
@@ -838,8 +842,13 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
 
         .user-id-badge {
             font-family: 'JetBrains Mono', monospace; color: var(--gold); background: var(--gold-soft);
-            padding: 7px 15px; border-radius: 10px; font-size: 0.9rem; border: 1px solid var(--gold-border);
-            flex-shrink: 0; letter-spacing: 0.3px;
+            padding: 7px 15px 7px 20px; border-radius: 4px; font-size: 0.9rem; border: 1px solid var(--gold-border);
+            border-left: none; flex-shrink: 0; letter-spacing: 0.3px; position: relative;
+        }
+        .user-id-badge::before {
+            content: ''; position: absolute; left: -1px; top: 0; bottom: 0; width: 9px;
+            background-image: radial-gradient(circle at 0 0, transparent 3.5px, var(--gold-border) 3.6px, var(--gold-border) 4px, transparent 4.1px);
+            background-size: 9px 9px; background-repeat: repeat-y; opacity: 0.9;
         }
 
         .empty-state { padding: 64px 30px; text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 14px; }
@@ -851,7 +860,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
 
         .terminal-card {
             background: #07080b; border: 1px solid var(--border-color); border-radius: 22px;
-            overflow: hidden; box-shadow: 0 24px 55px rgba(0,0,0,0.5), inset 0 0 70px rgba(45,212,191,0.03);
+            overflow: hidden; box-shadow: 0 24px 55px rgba(0,0,0,0.5), inset 0 0 70px rgba(79,184,166,0.03);
             flex: 1; display: flex; flex-direction: column; min-height: 480px;
             opacity: 0; transform: translateY(14px);
             animation: cardIn 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
@@ -885,7 +894,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         .terminal-body {
             flex: 1; padding: 18px 24px 22px; overflow-y: auto; max-height: 580px;
             font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; line-height: 1.75;
-            background-image: linear-gradient(rgba(45,212,191,0.015) 50%, transparent 50%);
+            background-image: linear-gradient(rgba(79,184,166,0.015) 50%, transparent 50%);
             background-size: 100% 4px;
         }
         .terminal-body::-webkit-scrollbar { width: 6px; }
@@ -967,7 +976,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             .nav-item { white-space: nowrap; padding: 11px 16px; font-size: 0.92rem; }
             .nav-highlight { display: none; }
             .nav-item.active {
-                background: linear-gradient(135deg, var(--gold-soft), rgba(242,183,5,0.04));
+                background: linear-gradient(135deg, var(--gold-soft), rgba(217,164,65,0.04));
                 border: 1px solid var(--gold-border);
             }
             .sidebar-footer {
@@ -1024,7 +1033,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
 
         .section-box.pulse-highlight { animation: sectionPulse 1.4s ease-out; }
         @keyframes sectionPulse {
-            0% { box-shadow: 0 20px 45px rgba(0,0,0,0.4), 0 0 0 1px var(--gold-border), 0 0 40px rgba(242,183,5,0.25); }
+            0% { box-shadow: 0 20px 45px rgba(0,0,0,0.4), 0 0 0 1px var(--gold-border), 0 0 40px rgba(217,164,65,0.25); }
             100% { box-shadow: 0 20px 45px rgba(0,0,0,0.4); }
         }
 
@@ -1040,7 +1049,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             width: 100%; max-width: 480px;
             background: linear-gradient(180deg, rgba(17,20,26,0.98), rgba(11,13,17,0.99));
             border: 1px solid var(--border-color); border-radius: 24px;
-            box-shadow: 0 40px 90px rgba(0,0,0,0.7), 0 0 60px rgba(242,183,5,0.06);
+            box-shadow: 0 40px 90px rgba(0,0,0,0.7), 0 0 60px rgba(217,164,65,0.06);
             padding: 30px 30px 26px; position: relative; overflow: hidden;
             transform: translateY(18px) scale(0.97); opacity: 0;
             transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.35s ease;
@@ -1114,8 +1123,8 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
     <div id="loader">
         <svg class="seal-spin" viewBox="0 0 60 60" fill="none">
             <circle cx="30" cy="30" r="26" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
-            <path d="M30 4 A26 26 0 0 1 56 30" stroke="#f2b705" stroke-width="3" stroke-linecap="round"/>
-            <path d="M30 56 A26 26 0 0 1 4 30" stroke="#2dd4bf" stroke-width="3" stroke-linecap="round"/>
+            <path d="M30 4 A26 26 0 0 1 56 30" stroke="#d9a441" stroke-width="3" stroke-linecap="round"/>
+            <path d="M30 56 A26 26 0 0 1 4 30" stroke="#4fb8a6" stroke-width="3" stroke-linecap="round"/>
         </svg>
         <div class="loader-text">Verifying Session</div>
     </div>
@@ -1288,7 +1297,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
                             </div>
                             <div class="item-right">
                                 {% if u[5] %}
-                                <span class="role-badge" style="--role-c: {{ u[6] or '#f2b705' }}; --role-soft: {{ u[6] or '#f2b705' }}22; --role-border: {{ u[6] or '#f2b705' }}55;">
+                                <span class="role-badge" style="--role-c: {{ u[6] or '#d9a441' }}; --role-soft: {{ u[6] or '#d9a441' }}22; --role-border: {{ u[6] or '#d9a441' }}55;">
                                     <span class="role-dot"></span>{{ u[5] }}
                                 </span>
                                 {% endif %}
@@ -1298,7 +1307,8 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
                         {% else %}
                         <div class="empty-state">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18" opacity="0.5"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg>
-                            <div>ยังไม่มีข้อมูลผู้ใช้</div>
+                            <div style="font-weight: 600; color: var(--text-main);">ยังไม่มีผู้ใช้ยืนยันตัวตน</div>
+                            <div style="font-size: 0.86rem; max-width: 280px;">รายการจะปรากฏที่นี่ทันทีที่มีคนยืนยันตัวตนสำเร็จ</div>
                         </div>
                         {% endfor %}
                     </div>
@@ -1430,9 +1440,9 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
                 const y = lastEvent.clientY - rect.top;
                 const px = x / rect.width - 0.5;
                 const py = y / rect.height - 0.5;
-                const rotateX = (-py * 8).toFixed(2);
-                const rotateY = (px * 10).toFixed(2);
-                card.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-6px) scale(1.015)`;
+                const rotateX = (-py * 4.5).toFixed(2);
+                const rotateY = (px * 5.5).toFixed(2);
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px) scale(1.008)`;
                 if (glow) { glow.style.left = x + 'px'; glow.style.top = y + 'px'; }
             }
 
@@ -1489,10 +1499,10 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             error: '<circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/>'
         };
         const notifyTheme = {
-            success: { c: '#f2b705', soft: 'rgba(242,183,5,0.14)', border: 'rgba(242,183,5,0.38)' },
-            info:    { c: '#2dd4bf', soft: 'rgba(45,212,191,0.14)', border: 'rgba(45,212,191,0.35)' },
-            warning: { c: '#fbbf24', soft: 'rgba(251,191,36,0.14)', border: 'rgba(251,191,36,0.35)' },
-            error:   { c: '#f87171', soft: 'rgba(248,113,113,0.14)', border: 'rgba(248,113,113,0.35)' }
+            success: { c: '#d9a441', soft: 'rgba(217,164,65,0.14)', border: 'rgba(217,164,65,0.38)' },
+            info:    { c: '#4fb8a6', soft: 'rgba(79,184,166,0.14)', border: 'rgba(79,184,166,0.35)' },
+            warning: { c: '#e0a836', soft: 'rgba(224,168,54,0.14)', border: 'rgba(224,168,54,0.35)' },
+            error:   { c: '#b3462c', soft: 'rgba(179,70,44,0.16)', border: 'rgba(179,70,44,0.4)' }
         };
 
         function showNotification(title, message, type = 'success', duration = 4000) {
