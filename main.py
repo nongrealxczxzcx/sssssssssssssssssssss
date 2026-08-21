@@ -25,6 +25,12 @@ ROLE_ID = 1211224793060478976
 WEBHOOK_SUCCESS = "https://discord.com/api/webhooks/1540031111223189701/KhD_TF8YMxmRih4KQCH-MtBnTy74Qcodk7trYCqjy7_z6-6zQ8frXd8dJX-FOaZ1MO7X"
 WEBHOOK_ERROR = "https://discord.com/api/webhooks/1540065078278365204/8MNh3CWoP4GUM_8k2WLw53H5EumtDUY7p-uMTQ1kvCD30zxFS7VadBlMfRchuBjoVsX3"
 
+# โลโก้ที่ใช้แสดงในหน้า Admin Dashboard (สิ่งที่เคย hardcode ไว้ในเทมเพลตตรงๆ
+# ตอนนี้ย้ายมาไว้เป็นตัวแปรที่นี่ แล้วส่งเข้า template ผ่าน logo_url แทน
+# เพราะเดิมเทมเพลตเช็ค {% if logo_url %} แต่ไม่เคยมีการส่ง logo_url เข้าไปเลย
+# เลยตกไป else แสดงไอคอนโล่ SVG เดิมทุกครั้ง)
+BRAND_LOGO_URL = "https://images-ext-1.discordapp.net/external/wsyQrdpI7DwJnP-HyLwmBThFVdwmGd6QdhWAqD8_zmo/https/cdn.discordapp.com/avatars/1183718234806038563/ea310ab0a655ae6820b3021bbc93d734.png?format=webp&quality=lossless"
+
 if not BOT_TOKEN or not CLIENT_SECRET:
     raise RuntimeError(
         "กรุณาตั้งค่า BOT_TOKEN และ CLIENT_SECRET เป็น environment variable ก่อนรัน"
@@ -534,13 +540,11 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             overflow-x: hidden;
         }
 
-        /* Fine film-grain texture for a premium physical finish */
         .grain {
             position: fixed; inset: -100px; z-index: 3; pointer-events: none; opacity: 0.035;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
 
-        /* Ambient blobs, tuned to the gold/teal identity */
         .aurora { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
         .aurora span { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.45; }
         .aurora span:nth-child(1) {
@@ -556,7 +560,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         @keyframes drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(6vw,5vh) scale(1.1); } }
         @keyframes drift2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-5vw,-6vh) scale(1.08); } }
 
-        /* Subtle CRT-style scanline sweep, ties to the "monitoring" theme */
         .scanline {
             position: fixed; inset: 0; z-index: 2; pointer-events: none;
             background: linear-gradient(180deg, transparent 0%, rgba(45,212,191,0.05) 50%, transparent 100%);
@@ -571,7 +574,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             100% { transform: translateY(100vh); opacity: 0; }
         }
 
-        /* Loader */
         #loader {
             position: fixed; inset: 0; background: var(--bg-base);
             display: flex; flex-direction: column; gap: 20px; justify-content: center; align-items: center;
@@ -590,7 +592,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         }
         @keyframes fadeFlicker { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        /* Main Layout */
         .dashboard-wrapper {
             width: 100%; max-width: 1720px;
             background: linear-gradient(180deg, rgba(14, 16, 21, 0.92), rgba(8, 9, 13, 0.97));
@@ -612,7 +613,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         @keyframes shimmerLine { 0% { background-position: 0% 0; } 100% { background-position: -200% 0; } }
         @keyframes pageIn { to { opacity: 1; transform: translateY(0); } }
 
-        /* Sidebar */
+
         .sidebar {
             background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px;
             padding: 32px 22px; display: flex; flex-direction: column; justify-content: space-between; position: relative;
@@ -674,7 +675,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         }
         @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
 
-        /* Main content */
+
         .main-content { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
 
         .topbar { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px 0; }
@@ -686,7 +687,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             font-weight: 600; display: flex; align-items: center; gap: 9px; letter-spacing: 0.3px;
         }
 
-        /* Stats */
+
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
         .stat-card {
             background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 22px;
@@ -745,7 +746,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         .stat-card.teal .stat-icon svg { stroke: var(--teal); }
         .stat-card:hover .stat-icon { transform: rotate(-8deg) scale(1.12); animation-play-state: paused; }
 
-        /* Split-flap style digits */
+
         .flap-row { display: flex; align-items: baseline; gap: 1px; font-family: 'JetBrains Mono', monospace; }
         .flap-char {
             position: relative; display: inline-block; font-size: clamp(2.1rem, 5vw, 3rem); font-weight: 700;
@@ -756,7 +757,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         .stat-trend { font-size: 0.86rem; color: var(--teal); margin-top: 12px; font-weight: 600; }
         .stat-card.gold .stat-trend { color: var(--gold); }
 
-        /* Section box */
+
         .section-box {
             background: var(--card-bg); border-radius: 22px; overflow: hidden; border: 1px solid var(--border-color);
             box-shadow: 0 24px 55px rgba(0,0,0,0.4); flex: 1; display: flex; flex-direction: column;
@@ -793,7 +794,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
 
         .user-info { display: flex; align-items: center; gap: 17px; min-width: 0; }
 
-        /* Scanner-frame avatar — corner brackets appear like a viewfinder capture */
         .avatar-wrap { position: relative; flex-shrink: 0; width: 54px; height: 54px; }
         .avatar-wrap img {
             width: 100%; height: 100%; border-radius: 13px; border: 2px solid var(--border-color);
@@ -820,7 +820,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         .user-name { font-weight: 700; font-size: 1.08rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-handle { font-size: 0.88rem; color: var(--text-muted); margin-top: 3px; }
 
-        /* Role badge — shows which Discord role the user received */
         .role-badge {
             display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
             font-family: 'JetBrains Mono', monospace; font-size: 0.84rem; font-weight: 600;
@@ -847,11 +846,9 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         .empty-state svg { width: 40px; height: 40px; stroke: var(--text-muted); opacity: 0.6; animation: floatIcon 3s ease-in-out infinite; }
         @keyframes floatIcon { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
-        /* View switcher — Dashboard vs Logs (terminal) */
         .view-panel { display: none; flex-direction: column; gap: 22px; flex: 1; min-height: 0; }
         .view-panel.active { display: flex; }
 
-        /* Terminal / error-log panel */
         .terminal-card {
             background: #07080b; border: 1px solid var(--border-color); border-radius: 22px;
             overflow: hidden; box-shadow: 0 24px 55px rgba(0,0,0,0.5), inset 0 0 70px rgba(45,212,191,0.03);
@@ -919,7 +916,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
         }
         .terminal-footer .live-badge { padding: 4px 11px; }
 
-        /* Notifications — styled like a stamp landing on a log entry */
         #notification-container { position: fixed; top: 28px; right: 28px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; width: min(400px, calc(100vw - 40px)); }
         .notify-box {
             background: rgba(14, 16, 21, 0.97); border: 1px solid var(--nc-border, var(--gold-border));
@@ -982,8 +978,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             .sidebar-footer div:last-child { display: none; }
         }
 
-        /* Stat cards keep their desktop card shape on phones — a swipeable,
-           snap-scrolling strip instead of stacking into a plain list. */
         @media (max-width: 640px) {
             .stats-grid {
                 grid-template-columns: none;
@@ -1028,7 +1022,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             outline: 2px solid var(--gold); outline-offset: 2px;
         }
 
-        /* Section highlight when navigated to */
         .section-box.pulse-highlight { animation: sectionPulse 1.4s ease-out; }
         @keyframes sectionPulse {
             0% { box-shadow: 0 20px 45px rgba(0,0,0,0.4), 0 0 0 1px var(--gold-border), 0 0 40px rgba(242,183,5,0.25); }
@@ -1185,7 +1178,7 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
                 <div class="brand-area">
                     <div class="brand-mark">
                         {% if logo_url %}
-                        <img src="https://images-ext-1.discordapp.net/external/wsyQrdpI7DwJnP-HyLwmBThFVdwmGd6QdhWAqD8_zmo/https/cdn.discordapp.com/avatars/1183718234806038563/ea310ab0a655ae6820b3021bbc93d734.png?format=webp&quality=lossless" alt="STIFSHOP logo">
+                        <img src="{{ logo_url }}" alt="STIFSHOP logo">
                         {% else %}
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#14171c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 2 3 6v6c0 5 3.8 8.7 9 10 5.2-1.3 9-5 9-10V6l-9-4Z"/>
@@ -1367,7 +1360,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
                 loader.style.visibility = 'hidden';
             }, 450);
 
-            // Split-flap digit reveal for stat numbers
             document.querySelectorAll('.flap-row').forEach((row) => {
                 const value = row.getAttribute('data-flap') || '0';
                 const unit = row.getAttribute('data-unit');
@@ -1425,7 +1417,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             moveNavHighlight(activeEl, false);
         });
 
-        // --- Magnetic 3D tilt for stat cards, glow follows the cursor ---
         document.querySelectorAll('.stat-card').forEach((card) => {
             const glow = card.querySelector('.glow-cursor');
             let ticking = false;
@@ -1460,7 +1451,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             });
         });
 
-        // --- Ripple micro-interaction on buttons / nav items ---
         document.querySelectorAll('.ripple-el').forEach((el) => {
             el.addEventListener('click', (e) => {
                 const rect = el.getBoundingClientRect();
@@ -1475,7 +1465,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             });
         });
 
-        // --- Gentle parallax drift for the ambient aurora blobs, follows the cursor ---
         const auroraSpans = document.querySelectorAll('.aurora span');
         let auroraTicking = false;
         document.addEventListener('mousemove', (e) => {
@@ -1493,7 +1482,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             });
         });
 
-        // Notification system, styled as a verification stamp landing on a log entry
         const notifyIcons = {
             success: '<path d="M20 6 9 17l-5-5"/>',
             info: '<circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/>',
@@ -1556,7 +1544,6 @@ ADMIN_STATS_TEMPLATE = """<!DOCTYPE html>
             showNotification(demoNotifTitle, demoNotifMsg, "success");
         }, 1200);
 
-        // --- Nav: Verified -> smooth scroll to the log, with a highlight pulse ---
         const navDashboard = document.getElementById('nav-dashboard');
         const navVerified = document.getElementById('nav-verified');
         const navLogs = document.getElementById('nav-logs');
@@ -1769,9 +1756,9 @@ def send_webhook_log(webhook_url, title, description, color, avatar_url=None,
         resp = requests.post(webhook_url, json=payload, timeout=10)
 
         if resp.status_code != 204:
-            logger.error(f"[webhook] FAILED status={resp.status_code} body={resp.text}")
+            logger.error(f"[webhook] FAILED status={resp.status_code} body={resp.text[:300]}")
         else:
-            logger.info("[webhook] sent ok")
+            logger.info(f"[webhook] sent ok -> {title}")
  
     except Exception as e:
         logger.error(f"[webhook] exception: {e}")
@@ -1849,6 +1836,7 @@ def callback():
             send_webhook_log(WEBHOOK_ERROR, "❌ เพิ่มยศไม่สำเร็จ", f"ผู้ใช้: {username} (`{user_id}`)\nAPI Error Code: {r.status_code}", 16711680)
         else:
             logger.info(f"✅ {username} ({user_id}) ยืนยันตัวตนสำเร็จ — ได้รับยศ {role_info['name']}")
+
             if not already_verified:
                 conn = sqlite3.connect("verifications.db")
                 cursor = conn.cursor()
@@ -1868,12 +1856,21 @@ def callback():
                 )
                 conn.commit()
                 conn.close()
-                
+
                 send_webhook_log(
-                    WEBHOOK_SUCCESS, 
-                    "`✅` **มีผู้ยืนยันตัวตนสำเร็จ**", 
-                    f"- **ผู้ใช้งาน:** **{global_name or username}** (`@{username}`)\n- **ID:** **{user_id}**\n- **ยศที่ได้รับ:** **{role_info['name']}**", 
+                    WEBHOOK_SUCCESS,
+                    "`✅` **มีผู้ยืนยันตัวตนสำเร็จ**",
+                    f"- **ผู้ใช้งาน:** **{global_name or username}** (`@{username}`)\n- **ID:** **{user_id}**\n- **ยศที่ได้รับ:** **{role_info['name']}**",
                     2318169,
+                    avatar_url=avatar_url,
+                )
+            else:
+                logger.info(f"ℹ️ {username} ({user_id}) ยืนยันตัวตนซ้ำ (มีอยู่ในระบบแล้ว)")
+                send_webhook_log(
+                    WEBHOOK_SUCCESS,
+                    "`🔁` **มีผู้ยืนยันตัวตนซ้ำ**",
+                    f"- **ผู้ใช้งาน:** **{global_name or username}** (`@{username}`)\n- **ID:** **{user_id}**\n- **ยศที่ได้รับ:** **{role_info['name']}**\n- หมายเหตุ: ผู้ใช้นี้เคยยืนยันตัวตนไปแล้วก่อนหน้านี้",
+                    3447003,
                     avatar_url=avatar_url,
                 )
 
@@ -1916,7 +1913,13 @@ def admin_stats():
     users = cursor.fetchall()
     conn.close()
 
-    return render_template_string(ADMIN_STATS_TEMPLATE, total_count=total_count, today_count=today_count, users=users)
+    return render_template_string(
+        ADMIN_STATS_TEMPLATE,
+        total_count=total_count,
+        today_count=today_count,
+        users=users,
+        logo_url=BRAND_LOGO_URL,
+    )
 
 @app.route("/admin/logs")
 def admin_logs():
